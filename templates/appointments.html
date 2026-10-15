@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Pet Coffee Shop – Appointments</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --beige: #f4f2ea; 
+        --dutch: #e4d5b4;
+        --tan: #d2b48c;
+        --cham: #9d825d;
+        --drab: #4a3b2c; 
+        --bg: #e4d5b4;
+        --card: #ffffff; 
+        --field: var(--dutch);
+        --text: var(--drab);
+        --muted: #8b7d6b;
+        --btn: var(--drab);
+        --btn-text: #ffffff;
+        --accent: var(--tan);
+        --err: #c85a5a;
+        
+        --brand-green: #305342;
+        --light-green: #eaf0ec;
+        --sidebar-w: 260px;
+        --card-border: 1px solid rgba(74, 59, 44, 0.08);
+        box-sizing: border-box;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100vh;
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        background: var(--beige);
+        color: var(--text);
+        display: flex;
+        overflow: hidden;
+      }
+
+      h1, h2, h3, .serif {
+        font-family: 'Playfair Display', "Georgia", serif;
+        font-weight: 600;
+        margin: 0;
+        letter-spacing: -0.01em;
+      }
+
+      .sidebar {
+        width: var(--sidebar-w);
+        min-width: var(--sidebar-w);
+        background: var(--card);
+        border-right: var(--card-border);
+        display: flex;
+        flex-direction: column;
+        padding: 24px 20px;
+        z-index: 10;
+      }
+
+      .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding-left: 10px; }
+      .logo-icon { width: 36px; height: 36px; background: var(--drab); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--card); }
+      .logo-text { line-height: 1.15; }
+      .logo-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.15rem; color: var(--text); }
+      .logo-sub { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; margin-top: 2px;}
+
+      .nav-menu { list-style: none; padding: 0; margin: 0; flex: 1; }
+      .nav-item {
+        display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 10px;
+        color: var(--muted); text-decoration: none; font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; transition: all 0.2s;
+      }
+      .nav-item svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
+      .nav-item:hover { background: rgba(74, 59, 44, 0.05); color: var(--text); transform: translateX(4px); }
+      
+      .nav-item.active { background: #eaf0ec; color: var(--brand-green); font-weight: 700; border: 1px solid #d0e0d6; }
+      .nav-item.active:hover { transform: none; }
+
+      .sidebar-bottom { border-top: var(--card-border); padding-top: 20px; margin-top: auto; }
+      .user-profile { display: flex; align-items: center; gap: 12px; padding: 10px; margin-top: 10px; border-radius: 10px; transition: background 0.2s; cursor: pointer; }
+      .user-profile:hover { background: rgba(74, 59, 44, 0.05); }
+      .avatar { width: 36px; height: 36px; border-radius: 50%; background: #f0d8b6; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--drab); }
+      .user-info p { margin: 0; font-size: 0.85rem; font-weight: 700; }
+      .user-info span { font-size: 0.75rem; color: var(--muted); font-weight: 500; }
+
+      .main-content { 
+        flex: 1; 
+        min-width: 0; 
+        padding: 40px 4vw; 
+        overflow-y: auto; 
+      }
+      
+      .content-wrapper {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; }
+      .header-date { color: var(--brand-green); font-weight: 700; font-size: 0.85rem; margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 0.05em; }
+      .header h1 { font-size: 2.5rem; color: var(--text); margin-bottom: 6px; }
+      .header p { color: var(--muted); margin: 0; font-size: 0.95rem; font-weight: 500; }
+
+      .header-actions { display: flex; align-items: center; gap: 16px; }
+      
+      .segmented-control {
+        display: flex;
+        background: var(--card);
+        border: var(--card-border);
+        border-radius: 12px;
+        padding: 4px;
+      }
+      .seg-btn {
+        background: transparent; border: none; padding: 8px 16px; font-size: 0.9rem; font-weight: 700;
+        color: var(--muted); border-radius: 8px; cursor: pointer; transition: 0.2s;
+        text-decoration: none; display: inline-block;
+      }
+      .seg-btn.active { background: var(--drab); color: white; }
+
+      .btn-green {
+        padding: 12px 20px; border: 0; border-radius: 12px; background: var(--brand-green); color: white;
+        font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .btn-green:hover { transform: translateY(-2px); box-shadow: 0 8px 15px -8px var(--brand-green); }
+
+      .appointments-layout {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 30px;
+        align-items: start;
+      }
+
+      .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
+      .section-header h3 { font-size: 1.4rem; color: var(--text); margin-bottom: 4px; }
+      .section-header span { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+      .section-header a { color: var(--brand-green); font-size: 0.9rem; font-weight: 700; text-decoration: none; }
+
+      .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+      }
+
+      .pet-card {
+        background: var(--card);
+        border: var(--card-border);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+      }
+      .pet-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(74, 59, 44, 0.08); }
+
+      .pet-card-img {
+        height: 180px;
+        position: relative;
+        background-color: #ddd;
+        background-blend-mode: overlay;
+      }
+      .bg-mochi { background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%), #8ebc7f; }
+      .bg-oliver { background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%), #1f1f1f; }
+      .bg-waffles { background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%), #cfab8f; }
+      .bg-luna { background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%), #a67c62; }
+
+
+      .badge-type {
+        position: absolute; bottom: 12px; left: 16px; background: white; color: var(--text);
+        padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .badge-time {
+        position: absolute; bottom: 12px; right: 16px; color: white;
+        font-size: 0.85rem; font-weight: 800;
+      }
+
+      .pet-card-info { padding: 16px 20px; }
+      .info-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+      .info-top h4 { margin: 0 0 4px; font-size: 1.2rem; color: var(--text); }
+      .info-top p { margin: 0; font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+      
+      .btn-arrow {
+        width: 32px; height: 32px; border-radius: 50%; background: #f0f4f1; color: var(--brand-green);
+        border: none; display: flex; align-items: center; justify-content: center; cursor: pointer;
+      }
+      
+      .info-bottom { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid rgba(0,0,0,0.05); padding-top: 14px; font-weight: 600; }
+      .info-bottom svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+      .detail-panel {
+        background: var(--card);
+        border: var(--card-border);
+        border-radius: 24px;
+        overflow: hidden;
+        position: sticky;
+        top: 40px;
+        box-shadow: 0 10px 30px rgba(74, 59, 44, 0.05);
+      }
+
+      .detail-hero {
+        height: 220px;
+        position: relative;
+        background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%), #8ebc7f;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 24px;
+        color: white;
+      }
+      .detail-hero h2 { font-size: 2.2rem; margin: 0 0 4px; }
+      .detail-hero p { margin: 0; font-size: 0.95rem; opacity: 0.9; font-weight: 500; }
+
+      .detail-body { padding: 24px; }
+      
+      .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+      .stat-box { background: var(--beige); border-radius: 12px; padding: 12px 16px; }
+      .stat-box label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.05em; }
+      .stat-box span { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+
+      .notes-section { margin-bottom: 24px; }
+      .notes-section label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em; }
+      .notes-section p { margin: 0; font-size: 0.9rem; color: var(--muted); line-height: 1.5; font-weight: 500; }
+
+      .next-appt-card { background: var(--light-green); border-radius: 16px; padding: 16px 20px; }
+      .next-appt-card .card-label { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 800; color: var(--brand-green); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.05em; }
+      .next-appt-card .card-label svg { width: 14px; height: 14px; }
+      .next-appt-card h4 { margin: 0 0 6px; font-size: 1.2rem; color: var(--text); }
+      .next-appt-card p { margin: 0; font-size: 0.85rem; color: var(--muted); display: flex; align-items: center; gap: 6px; font-weight: 600; }
+      .next-appt-card p svg { width: 12px; height: 12px; }
+
+      @media (max-width: 1100px) {
+        .appointments-layout { grid-template-columns: 1fr; }
+        .detail-panel { position: relative; top: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    
+    <aside class="sidebar">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="4" r="2"/>
+            <circle cx="18" cy="8" r="2"/>
+            <circle cx="20" cy="16" r="2"/>
+            <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <div class="logo-title">Brewskers</div>
+          <div class="logo-sub">Pet Café</div>
+        </div>
+      </div>
+
+      <ul class="nav-menu">
+        <li>
+          <a href="/dashboard" class="nav-item">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+            Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item">
+            <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            Point of sale
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            Inventory
+          </a>
+        </li>
+        <li>
+          <a href="/appointments" class="nav-item active">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Appointments
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Reports
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-bottom">
+        <a href="#" class="nav-item">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+        <div class="user-profile">
+          <div class="avatar">A</div>
+          <div class="user-info">
+            <p>Admin</p>
+            <span>Store manager</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="content-wrapper">
+        
+        <header class="header">
+          <div>
+            <span class="header-date">Pet lounge</span>
+            <h1 class="serif">Appointments</h1>
+            <p>Browse expected guests and manage their upcoming visits.</p>
+          </div>
+          <div class="header-actions">
+            <div class="segmented-control">
+              <a href="/appointments" class="seg-btn active">Appointments</a>
+              <a href="/schedule" class="seg-btn">Schedule</a>
+            </div>
+            <button class="btn-green">+ Set appointment</button>
+          </div>
+        </header>
+
+        <div class="appointments-layout">
+          
+          <div>
+            <div class="section-header">
+              <div>
+                <h3 class="serif">Upcoming guests</h3>
+                <span>8 scheduled pet visits</span>
+              </div>
+              <a href="#">Open calendar ></a>
+            </div>
+            
+            <div class="cards-grid">
+              
+              <div class="pet-card">
+                <div class="pet-card-img bg-mochi">
+                  <span class="badge-type">Dog</span>
+                  <span class="badge-time">09:30</span>
+                </div>
+                <div class="pet-card-info">
+                  <div class="info-top">
+                    <div>
+                      <h4 class="serif">Mochi</h4>
+                      <p>Cavapoo · 2 years</p>
+                    </div>
+                    <button class="btn-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+                  </div>
+                  <div class="info-bottom">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    Oct 15 · Pup playdate
+                  </div>
+                </div>
+              </div>
+
+              <div class="pet-card">
+                <div class="pet-card-img bg-oliver">
+                  <span class="badge-type">Cat</span>
+                  <span class="badge-time">11:00</span>
+                </div>
+                <div class="pet-card-info">
+                  <div class="info-top">
+                    <div>
+                      <h4 class="serif">Oliver</h4>
+                      <p>Tuxedo · 4 years</p>
+                    </div>
+                    <button class="btn-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+                  </div>
+                  <div class="info-bottom">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    Oct 15 · Cat lounge visit
+                  </div>
+                </div>
+              </div>
+
+              <div class="pet-card">
+                <div class="pet-card-img bg-waffles">
+                  <span class="badge-type">Dog</span>
+                  <span class="badge-time">14:30</span>
+                </div>
+                <div class="pet-card-info">
+                  <div class="info-top">
+                    <div>
+                      <h4 class="serif">Waffles</h4>
+                      <p>Corgi · 3 years</p>
+                    </div>
+                    <button class="btn-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+                  </div>
+                  <div class="info-bottom">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    Oct 15 · Birthday party
+                  </div>
+                </div>
+              </div>
+
+              <div class="pet-card">
+                <div class="pet-card-img bg-luna">
+                  <span class="badge-type">Cat</span>
+                  <span class="badge-time">10:15</span>
+                </div>
+                <div class="pet-card-info">
+                  <div class="info-top">
+                    <div>
+                      <h4 class="serif">Luna</h4>
+                      <p>Calico · 18 months</p>
+                    </div>
+                    <button class="btn-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+                  </div>
+                  <div class="info-bottom">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    Oct 16 · Cat lounge visit
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="detail-panel">
+            <div class="detail-hero">
+              <h2 class="serif">Mochi</h2>
+              <p>Cavapoo</p>
+            </div>
+            
+            <div class="detail-body">
+              <div class="stats-row">
+                <div class="stat-box">
+                  <label>Age</label>
+                  <span>2 years</span>
+                </div>
+                <div class="stat-box">
+                  <label>Owner</label>
+                  <span>Chey</span>
+                </div>
+              </div>
+
+              <div class="notes-section">
+                <label>Guest Notes</label>
+                <p>Friendly and curious. Loves small dogs and peanut butter biscuits.</p>
+              </div>
+
+              <div class="next-appt-card">
+                <div class="card-label">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Next appointment
+                </div>
+                <h4 class="serif">Thursday, Oct 15</h4>
+                <p>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  09:30 · Pup playdate
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
