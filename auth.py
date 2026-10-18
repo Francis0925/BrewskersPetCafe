@@ -7,20 +7,19 @@ import secrets
 import smtplib
 from email.message import EmailMessage
 from dotenv import load_dotenv
+
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
-# Database connection
+
 def connect_db():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="123456789", 
+        password=os.environ.get("DB_PASSWORD", "123456789"), 
         database="petcoffeeshop_db"
     )
 
-# User signup
 def signup(username, email, password, role="staff"):
     if len(password) < 8:
-        print("Error: Password too short")
         return False
 
     db = connect_db()
@@ -30,7 +29,6 @@ def signup(username, email, password, role="staff"):
 
     db_cursor.execute("SELECT * FROM users WHERE email = %s OR username = %s", (email, username))
     if db_cursor.fetchone() != None:
-        print("Error: User exists")
         db.close()
         return False
 
@@ -39,11 +37,9 @@ def signup(username, email, password, role="staff"):
         (username, email, hashed_pw, role)
     )
     db.commit()
-    print("Success: Account created")
     db.close()
     return True
 
-# User login
 def login(login_input, password, remember=False):
     db = connect_db()
     db_cursor = db.cursor(dictionary=True)
@@ -55,8 +51,6 @@ def login(login_input, password, remember=False):
     user = db_cursor.fetchone()
 
     if user:
-        print(f"Success: Welcome {user['username']}")
-        
         session = str(random.randint(100000, 999999)) + "session"
         now = datetime.datetime.now()
         
@@ -71,16 +65,13 @@ def login(login_input, password, remember=False):
         db.close()
         return session, user['role']
     else:
-        print("Error: Invalid credentials")
         db.close()
         return None, None
 
-# Send email through Gmail
 def send_email(to_email, subject, body):
     sender = os.environ.get("GMAIL_USER")
     app_pw = os.environ.get("GMAIL_APP_PASSWORD")
     if not sender or not app_pw:
-        print("Error: GMAIL_USER / GMAIL_APP_PASSWORD not set")
         return False
 
     msg = EmailMessage()
@@ -97,11 +88,9 @@ def send_email(to_email, subject, body):
             server.login(sender, app_pw)
             server.send_message(msg)
         return True
-    except Exception as e:
-        print(f"Error sending email: {e}")
+    except Exception:
         return False
 
-# Forgot password
 def forgot_password(email):
     db = connect_db()
     db_cursor = db.cursor(dictionary=True)
@@ -125,19 +114,12 @@ def forgot_password(email):
             f"This code expires in 10 minutes. If you didn't request this, "
             f"you can ignore this email.\n\n- Pet Coffee Shop"
         )
-        if send_email(email, "Your password reset code", body):
-            print(f"Email sent: {email}")
-        else:
-            print("Error: Could not send email")
-    else:
-        print("Error: Email not found")
+        send_email(email, "Your password reset code", body)
         
     db.close()
 
-# Reset password
 def reset_password(email, otp_code, new_pass):
     if len(new_pass) < 8:
-        print("Error: Password too short")
         return False
 
     db = connect_db()
@@ -162,29 +144,31 @@ def reset_password(email, otp_code, new_pass):
         db_cursor.execute("DELETE FROM sessions WHERE user_id = %s", (match['user_id'],))
         
         db.commit()
-        print("Success: Password changed")
         db.close()
         return True
     else:
-        print("Error: Invalid OTP")
         db.close()
         return False
 
-
-# ---------------------------------------------------------------
-# Web layer: serves the login page and calls the functions above
-# Run:  pip install flask mysql-connector-python
-#       python app.py   ->  http://127.0.0.1:5000
-# ---------------------------------------------------------------
 from flask import Flask, render_template, request, jsonify, make_response
 
 app = Flask(__name__)
-
 
 @app.route("/")
 def index():
     return render_template("login.html")
 
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
+
+@app.route("/appointments")
+def appointments():
+    return render_template("appointments.html")
+
+@app.route("/schedule")
+def schedule():
+    return render_template("schedule.html")
 
 @app.post("/api/signup")
 def api_signup():
@@ -196,11 +180,9 @@ def api_signup():
         return jsonify(ok=False, error="Username and email are required")
     if len(password) < 8:
         return jsonify(ok=False, error="Password too short")
-    # role is never taken from the browser; new accounts are always "staff"
     if signup(username, email, password):
         return jsonify(ok=True)
     return jsonify(ok=False, error="User already exists")
-
 
 @app.post("/api/login")
 def api_login():
@@ -214,13 +196,11 @@ def api_login():
                     max_age=30 * 24 * 3600 if remember else 8 * 3600)
     return resp
 
-
 @app.post("/api/forgot-password")
 def api_forgot():
     d = request.get_json(force=True)
-    forgot_password((d.get("email") or "").strip())  # OTP is printed in this terminal
+    forgot_password((d.get("email") or "").strip())
     return jsonify(ok=True)
-
 
 @app.post("/api/reset-password")
 def api_reset():
@@ -232,6 +212,7 @@ def api_reset():
         return jsonify(ok=True)
     return jsonify(ok=False, error="Invalid or expired code")
 
-
 if __name__ == "__main__":
     app.run(debug=True)
+
+ 
