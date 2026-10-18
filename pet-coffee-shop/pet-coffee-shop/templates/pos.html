@@ -1,0 +1,41 @@
+{% extends "base.html" %}{% block page %}
+<main><div class="header"><div><h1>Good day, {{ user.username }}</h1><p>Ready to make tails wag?</p></div></div>
+ <input class="searchbar" style="max-width:none" id="search" placeholder="Search menu items..." oninput="draw()">
+ <div class="chips" id="chips"></div><div class="products" id="grid"></div></main>
+<aside class="order"><div style="display:flex;justify-content:space-between;align-items:center"><h2 class="serif" style="font-size:1.5rem">Current order</h2><a href="#" onclick="cart={};drawCart();return false" style="color:var(--err);font-size:.85rem">Clear</a></div>
+ <div class="lines" id="lines"></div>
+ <input id="customer" placeholder="Customer name (optional)"><select id="method"><option value="cash">Cash</option><option value="gcash">GCash</option><option value="card">Card</option></select>
+ <div class="sum"><div><span>Subtotal</span><span id="sub"></span></div><div><span>Tax (8%)</span><span id="tax"></span></div><div class="total"><span>Total</span><span id="total"></span></div></div>
+ <button class="btn wide" id="charge" onclick="charge()">Charge</button></aside>
+{% endblock %}{% block script %}<script>
+const products = {{ products|tojson }}, TAX = 0.08;
+let cart = {}, category = "All";
+const categories = ["All", ...new Set(products.map(p => p.category))];
+function draw() {
+  $("#chips").innerHTML = categories.map(c => `<button class="chip ${c === category ? "on" : ""}" onclick="category='${c}';draw()">${c}</button>`).join("");
+  const text = $("#search").value.toLowerCase();
+  $("#grid").innerHTML = products.filter(p => (category === "All" || p.category === category) && p.name.toLowerCase().includes(text))
+    .map(p => `<button class="product" onclick="add(${p.product_id})"><div class="art p${p.product_id % 6}">${p.emoji}</div>
+      ${p.stock <= 5 ? `<i>Only ${p.stock}</i>` : ""}<b>${p.name}</b><div class="serif" style="font-size:1.1rem">${peso(p.price)}<span>${p.stock} left</span></div></button>`).join("");
+}
+function add(id) { const p = products.find(x => x.product_id === id); if ((cart[id] || 0) >= p.stock) return toast("No more stock for " + p.name); cart[id] = (cart[id] || 0) + 1; drawCart(); }
+function change(id, step) { cart[id] += step; if (cart[id] < 1) delete cart[id]; drawCart(); }
+function drawCart() {
+  let subtotal = 0;
+  $("#lines").innerHTML = Object.entries(cart).map(([id, qty]) => {
+    const p = products.find(x => x.product_id == id); subtotal += p.price * qty;
+    return `<div class="line"><div class="pic p${p.product_id % 6}" style="width:40px;height:40px">${p.emoji}</div><div class="grow"><b>${p.name}</b>${peso(p.price)}</div>
+      <div class="qty"><button onclick="change(${id},-1)">−</button>${qty}<button onclick="change(${id},1)">+</button></div></div>`;
+  }).join("") || '<div class="empty">Tap an item to add it</div>';
+  const total = Math.round(subtotal * (1 + TAX) * 100) / 100;
+  $("#sub").textContent = peso(subtotal); $("#tax").textContent = peso(total - subtotal); $("#total").textContent = peso(total);
+  $("#charge").textContent = "Charge " + peso(total);
+}
+async function charge() {
+  const items = Object.entries(cart).map(([id, quantity]) => ({ product_id: +id, quantity }));
+  const result = await api("/api/orders", { items, customer_name: $("#customer").value, payment_method: $("#method").value });
+  if (!result.ok) return toast(result.error);
+  toast(`Order ${result.order_no} paid · ${peso(result.total)}`); setTimeout(() => location.reload(), 1200);
+}
+draw(); drawCart();
+</script>{% endblock %}
