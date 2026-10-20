@@ -1,0 +1,31 @@
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+ <form onsubmit="submitAppt(event)"><h2>Set appointment</h2>
+  <div class="two"><input name="pet_name" placeholder="Pet name" required>
+   <select name="pet_type"><option>Dog</option><option>Cat</option></select></div>
+  <div class="two"><input name="breed" placeholder="Breed"><input name="pet_age" placeholder="Age (e.g. 2 years)"></div>
+  <div class="two"><input name="owner_name" placeholder="Owner name" required><input name="phone" placeholder="Phone" required></div>
+  <select name="service_id" required>{% for s in services %}<option value="{{ s.service_id }}">{{ s.name }}</option>{% endfor %}</select>
+  <div class="two"><input type="date" name="appt_date" required><input type="time" name="appt_time" required></div>
+  <input type="file" name="photo_file" accept="image/*">
+  <textarea name="notes" rows="2" placeholder="Guest notes"></textarea>
+  <button class="btn green wide">Save appointment</button></form></div>
+<script>
+const resizePhoto = (file, max = 600) => new Promise(done => {
+  const img = new Image();
+  img.onload = () => {
+    const s = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement("canvas");
+    c.width = img.width * s; c.height = img.height * s;
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    done(c.toDataURL("image/jpeg", 0.8));
+  };
+  img.src = URL.createObjectURL(file);
+});
+async function submitAppt(e) {
+  e.preventDefault();
+  const f = e.target, data = Object.fromEntries(new FormData(f));
+  delete data.photo_file;
+  if (f.photo_file.files[0]) data.photo = await resizePhoto(f.photo_file.files[0]);
+  const r = await api("/api/appointments", data);
+  r.ok ? location.reload() : toast(r.error);
+}
+</script>

@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% block page %}<main>
+<div class="header"><div><span class="eyebrow">Pet lounge</span><h1>Appointments</h1><p>Browse expected guests and manage their upcoming visits.</p></div>
+ <div class="actions"><div class="seg"><a href="/appointments">Appointments</a><a class="on" href="/schedule">Schedule</a></div><button class="btn green" onclick="openModal()">+ Set appointment</button></div></div>
+<div class="cols side" style="grid-template-columns:minmax(0,1fr) 340px">
+ <div class="panel"><div class="calhead"><button onclick="moveMonth(-1)">‹</button><h2 id="month" class="serif" style="font-size:1.6rem"></h2><button onclick="moveMonth(1)">›</button></div><div class="cal" id="cal"></div></div>
+ <div class="panel"><small style="font-weight:700;color:var(--muted)">DAILY SCHEDULE</small><h2 id="dayTitle" style="font-size:1.5rem;margin:4px 0"></h2><p id="dayCount" style="margin:0 0 14px;color:var(--muted);font-size:.85rem"></p><div class="list" id="dayList"></div></div></div></main>
+{% include "_appt_modal.html" %}{% endblock %}{% block script %}<script>
+const appointments = {{ appointments|tojson }};
+const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const todayIso = iso(new Date());
+let shown = new Date(); shown.setDate(1); let selected = todayIso;
+const moveMonth = n => { shown.setMonth(shown.getMonth() + n); draw(); };
+function draw() {
+  $("#month").textContent = shown.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  let html = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => `<div class="dn">${d}</div>`).join("") + "<div></div>".repeat(shown.getDay());
+  const days = new Date(shown.getFullYear(), shown.getMonth() + 1, 0).getDate();
+  for (let n = 1; n <= days; n++) {
+    const key = iso(new Date(shown.getFullYear(), shown.getMonth(), n)), count = appointments.filter(a => a.appt_date === key).length;
+    html += `<div class="day ${key === selected ? "sel" : ""} ${key === todayIso ? "today" : ""}" onclick="selected='${key}';draw()">${n}${count ? `<em>${count} visit${count > 1 ? "s" : ""}</em>` : ""}</div>`;
+  }
+  $("#cal").innerHTML = html;
+  const list = appointments.filter(a => a.appt_date === selected);
+  $("#dayTitle").textContent = new Date(selected + "T00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  $("#dayCount").textContent = `${list.length} appointment${list.length === 1 ? "" : "s"}`;
+  $("#dayList").innerHTML = list.map(a => `<a class="item" href="/appointments"><div class="pic c${a.appointment_id % 4}">${a.pet_type === "Cat" ? "🐱" : "🐶"}</div><div class="grow"><h4>${a.pet_name}</h4><p>${a.service_name} · ${a.owner_name}</p></div><div class="time">${a.appt_time}</div></a>`).join("") || '<div class="empty">Nothing booked this day.</div>';
+}
+draw();
+</script>{% endblock %}
