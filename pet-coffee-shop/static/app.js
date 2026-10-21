@@ -9,9 +9,9 @@ async function api(path, body, method = "POST") {
   if (res.status === 401) location.href = "/";
   return res.json();
 }
-const openModal = () => $("#modal").classList.add("open");
+const openModal  = () => $("#modal").classList.add("open");
 const closeModal = () => $("#modal").classList.remove("open");
-async function submitForm(event, path) {          // used by both the appointment and item forms
+async function submitForm(event, path) {
   event.preventDefault();
   const result = await api(path, Object.fromEntries(new FormData(event.target)));
   result.ok ? location.reload() : toast(result.error);

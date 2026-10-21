@@ -3,275 +3,374 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Pet Coffee Shop – Login</title>
+    <title>Brewskers – Staff login</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
     <style>
       :root {
-        --beige: #f5f5dc;
-        --dutch: #e4d5b4;
-        --tan: #d2b48c;
-        --cham: #9d825d;
-        --drab: #674f2d;
-        --bg: #e4d5b4;
-        --card: #fffdf3;
-        --field: var(--dutch);
-        --text: var(--drab);
-        --muted: var(--cham);
-        --btn: var(--drab);
-        --btn-text: var(--beige);
-        --accent: var(--tan);
-        --err: #a4432f;
-        box-sizing: border-box;
-        padding-top: env(safe-area-inset-top, 0px);
-        padding-bottom: env(safe-area-inset-bottom, 0px);
+        --beige: #f5f1e3; --beige-soft: #faf6ec; --beige-deep: #ece2c4;
+        --dutch: #e2d4ad; --tan: #c9a875; --cham: #9d825d; --drab: #6c4f2a;
+        --ink: #3b2a20; --bg: #e9dec5; --card: #fdf8ec;
+        --field: var(--beige-deep); --text: var(--ink); --muted: #8b7a5e;
+        --line: rgba(59, 42, 32, 0.10);
+        --btn: var(--ink); --btn-text: var(--beige);
+        --accent: var(--tan); --err: #a4432f; --ok: #4f7a52;
       }
-      @media (prefers-color-scheme: dark) {
-        :root:not([data-theme="light"]) {
-          --bg: #2b2115;
-          --card: #3a2d1c;
-          --field: #4a3a25;
-          --text: var(--beige);
-          --muted: var(--tan);
-          --btn: var(--tan);
-          --btn-text: #2b2115;
-          --accent: var(--cham);
-          --err: #e58b78;
-          color-scheme: dark;
-        }
-      }
-      :root[data-theme="dark"] {
-        --bg: #2b2115;
-        --card: #3a2d1c;
-        --field: #4a3a25;
-        --text: var(--beige);
-        --muted: var(--tan);
-        --btn: var(--tan);
-        --btn-text: #2b2115;
-        --accent: var(--cham);
-        --err: #e58b78;
-        color-scheme: dark;
-      }
-      * { box-sizing: border-box; }
-      html, body { margin: 0; min-height: 100%; }
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; min-height: 100vh; }
       body {
-        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-        background: var(--bg);
+        font-family: 'DM Sans', system-ui, sans-serif;
+        background:
+          radial-gradient(1200px 600px at 15% 20%, rgba(201, 168, 117, 0.18), transparent 60%),
+          radial-gradient(900px 500px at 85% 90%, rgba(108, 79, 42, 0.18), transparent 60%),
+          var(--ink);
         color: var(--text);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        padding: 20px;
-        overflow-x: hidden;
-        position: relative;
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px; overflow-x: hidden;
       }
-      .card {
-        position: relative;
-        z-index: 1;
-        width: 100%;
-        max-width: 400px;
-        background: var(--card);
-        border-radius: 24px;
-        padding: 34px 30px 28px;
-        box-shadow: 0 20px 50px -20px rgba(103, 79, 45, 0.45);
-        animation: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-        transition: height 0.35s ease;
+      .floating-container {
+        display: flex; width: 100%; max-width: 1100px;
+        min-height: min(660px, calc(100vh - 40px));
+        background: var(--card); border-radius: 32px; padding: 20px;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4); position: relative; z-index: 10;
       }
-      @keyframes rise { from { opacity: 0; transform: translateY(24px) scale(0.97); } }
-      h1 { margin: 0 0 4px; font-size: 1.55rem; letter-spacing: -0.02em; }
+      .floating-container::before {
+        content: ""; position: absolute;
+        top: 28px; bottom: 28px;
+        left: calc(450px + 20px + 6px); width: 1px;
+        background: var(--line); pointer-events: none;
+      }
+      .left-side { flex: 0 0 450px; display: flex; align-items: center; justify-content: center; padding: 20px 40px; }
+      .right-side {
+        flex: 1; position: relative; background: var(--beige-soft);
+        border-radius: 24px; padding: 36px 40px;
+        display: flex; flex-direction: column; justify-content: space-between; gap: 28px; overflow: hidden;
+      }
+      .right-side::after {
+        content: ""; position: absolute; inset: auto -40px -60px auto;
+        width: 280px; height: 280px;
+        background: radial-gradient(closest-side, rgba(201,168,117,0.35), transparent 70%);
+        pointer-events: none;
+      }
+      .brand { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
+      .brand-mark {
+        width: 56px; height: 56px; border-radius: 16px; background: var(--ink); color: var(--beige);
+        display: grid; place-items: center; box-shadow: 0 8px 18px rgba(59, 42, 32, 0.18);
+      }
+      .brand-text h2 { font-family: 'DM Serif Display', serif; margin: 0; font-size: 1.7rem; color: var(--text); }
+      .brand-text p { margin: 2px 0 0; font-size: 0.72rem; letter-spacing: 0.18em; color: var(--muted); font-weight: 700; }
+      .hero { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 14px; }
+      .hero h1 { font-family: 'DM Serif Display', serif; font-size: clamp(1.8rem, 2.4vw, 2.4rem); line-height: 1.15; margin: 0; color: var(--text); }
+      .hero p { margin: 0; color: var(--muted); font-size: 0.95rem; max-width: 36ch; }
+      .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+      .pill {
+        display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px;
+        background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+        font-size: 0.78rem; font-weight: 600; color: var(--text);
+      }
+      .pill svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; }
+      .quote {
+        position: relative; z-index: 1; font-family: 'DM Serif Display', serif;
+        font-size: 1.05rem; line-height: 1.4; color: var(--text); opacity: 0.85;
+        padding-left: 14px; border-left: 2px solid var(--tan);
+      }
+      .quote small { display: block; margin-top: 6px; font-family: 'DM Sans', sans-serif; font-size: 0.72rem; letter-spacing: 0.12em; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+      .card { position: relative; z-index: 1; width: 100%; max-width: 380px; transition: height 0.35s ease; }
+      h1.title { font-family: 'DM Serif Display', serif; margin: 0 0 4px; font-size: 2.2rem; color: var(--text); }
       .sub { margin: 0 0 22px; color: var(--muted); font-size: 0.92rem; }
       .view { display: none; }
       .view.active { display: block; animation: in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
       @keyframes in { from { opacity: 0; transform: translateX(18px); } }
       .field { position: relative; margin-bottom: 14px; }
       .field input {
-        width: 100%; padding: 22px 64px 8px 14px; border: 2px solid transparent;
+        width: 100%; padding: 22px 56px 8px 14px; border: 2px solid transparent;
         border-radius: 14px; background: var(--field); color: var(--text);
         font-size: 1rem; outline: none; transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
       }
-      .field input:focus { border-color: var(--cham); box-shadow: 0 0 0 4px rgba(210, 180, 140, 0.35); }
+      .field input:focus { border-color: var(--drab); box-shadow: 0 0 0 4px rgba(108, 79, 42, 0.18); }
       .field label {
-        position: absolute; left: 14px; top: 17px; color: var(--muted);
-        font-size: 1rem; pointer-events: none; transition: all 0.2s ease; transform-origin: left;
+        position: absolute; left: 14px; top: 17px; color: var(--muted); font-size: 1rem;
+        pointer-events: none; transition: all 0.2s ease; transform-origin: left;
       }
-      .field input:focus + label, .field input:not(:placeholder-shown) + label {
-        top: 7px; font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase;
+      .field input:focus + label,
+      .field input:not(:placeholder-shown) + label {
+        top: 7px; font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700;
       }
       .eye {
         position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-        background: none; border: 0; color: var(--muted); cursor: pointer;
-        height: 30px; padding: 0 10px; border-radius: 10px; font-size: 0.78rem; font-weight: 600;
-        transition: background 0.2s, color 0.2s;
+        background: none; border: 0; color: var(--text); cursor: pointer;
+        height: 30px; width: 30px; border-radius: 10px;
+        display: grid; place-items: center; transition: background 0.2s, color 0.2s;
       }
-      .eye:hover { background: rgba(157, 130, 93, 0.2); color: var(--text); }
+      .eye:hover { background: rgba(108, 79, 42, 0.12); }
+      .eye svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; }
       .field.error input { border-color: var(--err); }
       .field.error { animation: shake 0.4s; }
       @keyframes shake { 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-3px); } }
       .msg { font-size: 0.78rem; color: var(--err); margin: -8px 0 10px 4px; max-height: 0; overflow: hidden; opacity: 0; transition: all 0.25s; }
       .field.error + .msg { max-height: 30px; opacity: 1; }
       .row { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 18px; font-size: 0.86rem; }
-      .check { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+      .check { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; font-weight: 500; }
       .check input { display: none; }
       .box { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--cham); display: grid; place-items: center; transition: all 0.2s; }
       .box svg { width: 12px; height: 12px; stroke: var(--btn-text); stroke-width: 3; fill: none; stroke-dasharray: 20; stroke-dashoffset: 20; transition: stroke-dashoffset 0.25s; }
       .check input:checked + .box { background: var(--btn); border-color: var(--btn); }
       .check input:checked + .box svg { stroke-dashoffset: 0; }
-      a, .link { color: var(--text); font-weight: 600; text-decoration: none; cursor: pointer; background: none; border: 0; padding: 0; font: inherit; background-image: linear-gradient(var(--accent), var(--accent)); background-size: 0 2px; background-position: 0 100%; background-repeat: no-repeat; transition: background-size 0.3s; }
-      .link:hover { background-size: 100% 2px; }
-      .btn { width: 100%; padding: 15px; border: 0; border-radius: 14px; background: var(--btn); color: var(--btn-text); font-size: 1rem; font-weight: 600; cursor: pointer; position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.25s, opacity 0.2s; }
+      a, .link {
+        color: var(--text); font-weight: 700; text-decoration: none;
+        cursor: pointer; background: none; border: 0; padding: 0; font: inherit;
+      }
+      .btn {
+        width: 100%; padding: 15px; border: 0; border-radius: 14px;
+        background: var(--btn); color: var(--btn-text); font-size: 0.98rem; font-weight: 600;
+        letter-spacing: 0.02em; cursor: pointer; position: relative; overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.25s, opacity 0.2s;
+      }
       .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 22px -10px var(--drab); }
       .btn:active { transform: translateY(0) scale(0.98); }
-      .btn[disabled] { opacity: 0.8; cursor: progress; }
+      .btn[disabled] { opacity: 0.7; cursor: progress; }
       .btn .spin { display: none; width: 18px; height: 18px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: sp 0.7s linear infinite; margin: 0 auto; }
       .btn.loading .t { display: none; }
       .btn.loading .spin { display: block; }
       @keyframes sp { to { transform: rotate(360deg); } }
+      .trust { display: flex; align-items: center; gap: 8px; justify-content: center; margin-top: 14px; font-size: 0.74rem; color: var(--muted); }
+      .trust svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; }
       .foot { text-align: center; margin-top: 18px; font-size: 0.88rem; color: var(--muted); }
       .back { margin-bottom: 14px; font-size: 0.86rem; color: var(--muted); }
-      .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 30px); opacity: 0; z-index: 5; background: var(--drab); color: var(--beige); padding: 12px 20px; border-radius: 14px; font-size: 0.9rem; transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; max-width: 90vw; text-align: center; }
+      .meter { display: flex; gap: 4px; margin: -4px 0 12px; }
+      .meter span { flex: 1; height: 4px; border-radius: 4px; background: rgba(108, 79, 42, 0.15); transition: background 0.2s; }
+      .meter[data-score="1"] span:nth-child(-n+1) { background: var(--err); }
+      .meter[data-score="2"] span:nth-child(-n+2) { background: var(--tan); }
+      .meter[data-score="3"] span:nth-child(-n+3) { background: var(--accent); }
+      .meter[data-score="4"] span:nth-child(-n+4) { background: var(--ok); }
+      .meter-label { font-size: 0.74rem; color: var(--muted); margin: -6px 0 12px 4px; min-height: 1em; }
+      .otp { display: flex; gap: 8px; justify-content: space-between; margin-bottom: 14px; }
+      .otp input {
+        width: 100%; aspect-ratio: 1 / 1.1; max-width: 50px; text-align: center;
+        font-size: 1.4rem; font-weight: 700; padding: 0; background: var(--field);
+        color: var(--text); border: 2px solid transparent; border-radius: 12px;
+        outline: none; transition: border-color 0.2s, box-shadow 0.2s; margin: 0;
+      }
+      .otp input:focus { border-color: var(--drab); box-shadow: 0 0 0 4px rgba(108, 79, 42, 0.18); }
+      .otp input.error { border-color: var(--err); animation: shake 0.4s; }
+      .toast {
+        position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+        transform: translate(-50%, 30px); opacity: 0; z-index: 5; background: var(--ink); color: var(--beige);
+        padding: 12px 20px; border-radius: 14px; font-size: 0.9rem;
+        transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+        pointer-events: none; max-width: 90vw; text-align: center;
+      }
       .toast.show { transform: translate(-50%, 0); opacity: 1; }
+      @media (max-width: 900px) {
+        .floating-container { flex-direction: column; padding: 24px 20px; min-height: 0; border-radius: 24px; }
+        .floating-container::before { display: none; }
+        .left-side { flex: 1; width: 100%; max-width: none; padding: 0; }
+        .right-side { width: 100%; padding: 24px; }
+      }
+      @media (max-width: 480px) { .right-side { display: none; } .left-side { padding: 0; } }
       @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
     </style>
   </head>
   <body>
-    <main class="card" id="card">
-      <form class="view active" id="login" novalidate>
-        <h1>Welcome back</h1>
-        <p class="sub">Sign in to the Pet Coffee Shop.</p>
-        <div class="field">
-          <input id="l-user" placeholder=" " autocomplete="username" /><label for="l-user">Email or username</label>
+    <div class="floating-container">
+      <div class="left-side">
+        <main class="card" id="card">
+          <form class="view active" id="login" novalidate>
+            <h1 class="title">Welcome back</h1>
+            <p class="sub">Sign in to the Brewskers staff console.</p>
+            <div class="field"><input id="l-user" placeholder=" " autocomplete="username" /><label for="l-user">Email or username</label></div>
+            <div class="msg">Enter your email or username</div>
+            <div class="field">
+              <input id="l-pass" type="password" placeholder=" " autocomplete="current-password" />
+              <label for="l-pass">Password</label>
+              <button type="button" class="eye" aria-label="Show password" data-target="l-pass">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="msg">Password must be at least 8 characters</div>
+            <div class="row">
+              <label class="check"><input type="checkbox" id="remember" /><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3"/></svg></span>Keep me signed in</label>
+              <button type="button" class="link" data-go="forgot">Forgot password?</button>
+            </div>
+            <button class="btn"><span class="t">Sign in</span><span class="spin"></span></button>
+            <p class="trust"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Encrypted session · Internal use only</p>
+            <p class="foot">New staff member? <button type="button" class="link" data-go="signup">Create account</button></p>
+          </form>
+          <form class="view" id="signup" novalidate>
+            <h1 class="title">Create account</h1>
+            <p class="sub">Register a staff account with your manager.</p>
+            <div class="field"><input id="s-user" placeholder=" " autocomplete="username" /><label for="s-user">Username</label></div>
+            <div class="msg">Choose a username</div>
+            <div class="field"><input id="s-email" type="email" placeholder=" " autocomplete="email" /><label for="s-email">Email</label></div>
+            <div class="msg">Enter a valid email</div>
+            <div class="field">
+              <input id="s-pass" type="password" placeholder=" " autocomplete="new-password" />
+              <label for="s-pass">Password</label>
+              <button type="button" class="eye" aria-label="Show password" data-target="s-pass"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            </div>
+            <div class="meter" data-score="0" id="meter"><span></span><span></span><span></span><span></span></div>
+            <div class="meter-label" id="meterLabel">Use at least 8 characters</div>
+            <div class="msg">Password must be at least 8 characters</div>
+            <button class="btn"><span class="t">Sign up</span><span class="spin"></span></button>
+            <p class="foot">Already have an account? <button type="button" class="link" data-go="login">Log in</button></p>
+          </form>
+          <form class="view" id="forgot" novalidate>
+            <button type="button" class="link back" data-go="login">‹ Back to sign in</button>
+            <h1 class="title">Forgot password</h1>
+            <p class="sub">We'll send a 6-digit code to your work email.</p>
+            <div class="field"><input id="f-email" type="email" placeholder=" " autocomplete="email" /><label for="f-email">Work email</label></div>
+            <div class="msg">Enter a valid email</div>
+            <button class="btn"><span class="t">Send code</span><span class="spin"></span></button>
+          </form>
+          <form class="view" id="reset" novalidate>
+            <button type="button" class="link back" data-go="forgot">‹ Back</button>
+            <h1 class="title">Reset password</h1>
+            <p class="sub" id="resetSub">Enter the 6-digit code we sent and choose a new password.</p>
+            <div class="otp" id="otp">
+              <input inputmode="numeric" maxlength="1"><input inputmode="numeric" maxlength="1"><input inputmode="numeric" maxlength="1"><input inputmode="numeric" maxlength="1"><input inputmode="numeric" maxlength="1"><input inputmode="numeric" maxlength="1">
+            </div>
+            <div class="msg" style="margin-top:-8px">Enter the 6-digit code</div>
+            <div class="field">
+              <input id="r-pass" type="password" placeholder=" " autocomplete="new-password" />
+              <label for="r-pass">New password</label>
+              <button type="button" class="eye" aria-label="Show password" data-target="r-pass"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            </div>
+            <div class="msg">Password must be at least 8 characters</div>
+            <button class="btn"><span class="t">Change password</span><span class="spin"></span></button>
+          </form>
+        </main>
+      </div>
+      <aside class="right-side">
+        <div class="brand">
+          <div class="brand-mark">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/>
+              <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.8 1Q6.5 17.5 4.5 16.8A3.5 3.5 0 0 1 5.5 10z"/>
+            </svg>
+          </div>
+          <div class="brand-text"><h2>Brewskers</h2><p>PET&nbsp;·&nbsp;CAFÉ&nbsp;·&nbsp;POS</p></div>
         </div>
-        <div class="msg">Enter your email or username</div>
-        <div class="field">
-          <input id="l-pass" type="password" placeholder=" " autocomplete="current-password" /><label for="l-pass">Password</label>
-          <button type="button" class="eye" aria-label="Show password">Show</button>
+        <div class="hero">
+          <h1>Run the counter.<br/>Pamper the guests.</h1>
+          <p>The Brewskers staff console handles orders, inventory, and the pet lounge — all from one place.</p>
+          <div class="pills">
+            <span class="pill"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>Point of sale</span>
+            <span class="pill"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/></svg>Inventory</span>
+            <span class="pill"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Pet bookings</span>
+          </div>
         </div>
-        <div class="msg">Password must be at least 8 characters</div>
-        <div class="row">
-          <label class="check"><input type="checkbox" id="remember" /><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3" /></svg></span>Remember me</label>
-          <button type="button" class="link" data-go="forgot">Forgot password?</button>
-        </div>
-        <button class="btn"><span class="t">Log in</span><span class="spin"></span></button>
-        <p class="foot">New here? <button type="button" class="link" data-go="signup">Create account</button></p>
-      </form>
-
-      <form class="view" id="signup" novalidate>
-        <h1>Create account</h1>
-        <p class="sub">Complete the few steps to get working with us.</p>
-        <div class="field">
-          <input id="s-user" placeholder=" " autocomplete="username" /><label for="s-user">Username</label>
-        </div>
-        <div class="msg">Choose a username</div>
-        <div class="field">
-          <input id="s-email" type="email" placeholder=" " autocomplete="email" /><label for="s-email">Email</label>
-        </div>
-        <div class="msg">Enter a valid email</div>
-        <div class="field">
-          <input id="s-pass" type="password" placeholder=" " autocomplete="new-password" /><label for="s-pass">Password</label>
-          <button type="button" class="eye" aria-label="Show password">Show</button>
-        </div>
-        <div class="msg">Password must be at least 8 characters</div>
-        <button class="btn"><span class="t">Sign up</span><span class="spin"></span></button>
-        <p class="foot">Already have an account? <button type="button" class="link" data-go="login">Log in</button></p>
-      </form>
-
-      <form class="view" id="forgot" novalidate>
-        <button type="button" class="link back" data-go="login">Back</button>
-        <h1>Forgot password?</h1>
-        <p class="sub">We'll send a 6-digit code to your email.</p>
-        <div class="field">
-          <input id="f-email" type="email" placeholder=" " autocomplete="email" /><label for="f-email">Email</label>
-        </div>
-        <div class="msg">Enter a valid email</div>
-        <button class="btn"><span class="t">Send code</span><span class="spin"></span></button>
-      </form>
-
-      <form class="view" id="reset" novalidate>
-        <button type="button" class="link back" data-go="forgot">Back</button>
-        <h1>Reset password</h1>
-        <p class="sub">Enter the code we sent and a new password.</p>
-        <div class="field">
-          <input id="r-otp" inputmode="numeric" maxlength="6" placeholder=" " autocomplete="one-time-code" /><label for="r-otp">6-digit code</label>
-        </div>
-        <div class="msg">Enter the 6-digit code</div>
-        <div class="field">
-          <input id="r-pass" type="password" placeholder=" " autocomplete="new-password" /><label for="r-pass">New password</label>
-          <button type="button" class="eye" aria-label="Show password">Show</button>
-        </div>
-        <div class="msg">Password must be at least 8 characters</div>
-        <button class="btn"><span class="t">Change password</span><span class="spin"></span></button>
-      </form>
-    </main>
-    <div class="toast" id="toast"></div>
-
+        <blockquote class="quote">"Espresso for the human, a chin scritch for the husky."<small>— HOUSE MOTTO</small></blockquote>
+      </aside>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script>
-      const $ = (s) => document.querySelector(s), $$ = (s) => [...document.querySelectorAll(s)];
-      const toast = (t) => {
-        const e = $("#toast"); e.textContent = t; e.classList.add("show");
-        clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove("show"), 2600);
-      };
-
+      const $  = (s) => document.querySelector(s);
+      const $$ = (s) => [...document.querySelectorAll(s)];
+      const toast = (t) => { const e = $("#toast"); e.textContent = t; e.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove("show"), 2600); };
       function go(id) {
         const card = $("#card"), h = card.offsetHeight;
         card.style.height = h + "px";
         $$(".view").forEach((v) => v.classList.remove("active"));
         $("#" + id).classList.add("active");
         card.style.height = "auto"; const nh = card.offsetHeight; card.style.height = h + "px";
-        requestAnimationFrame(() => {
-          card.style.height = nh + "px"; setTimeout(() => (card.style.height = "auto"), 360);
-        });
+        requestAnimationFrame(() => { card.style.height = nh + "px"; setTimeout(() => (card.style.height = "auto"), 360); });
         const f = $("#" + id + " input"); setTimeout(() => f && f.focus({ preventScroll: true }), 250);
       }
       $$("[data-go]").forEach((b) => (b.onclick = () => go(b.dataset.go)));
-
-      $$(".eye").forEach((b) => (b.onclick = () => {
-        const i = b.previousElementSibling.previousElementSibling;
-        const show = i.type === "password"; i.type = show ? "text" : "password"; b.textContent = show ? "Hide" : "Show";
-      }));
-
+      $$(".eye").forEach((b) => {
+        b.onclick = () => {
+          const input = $("#" + b.dataset.target);
+          const show = input.type === "password";
+          input.type = show ? "text" : "password";
+          b.querySelector("svg").innerHTML = show
+            ? '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a19.77 19.77 0 0 1 4.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a19.86 19.86 0 0 1-3.17 4.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+            : '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>';
+        };
+      });
       const bad = (input, cond) => {
-        const f = input.closest(".field"); f.classList.remove("error"); void f.offsetWidth;
-        if (cond) f.classList.add("error"); return cond;
+        const f = input.closest(".field, .otp");
+        f.classList.remove("error"); void f.offsetWidth;
+        if (cond) f.classList.add("error");
+        return cond;
       };
-      $$("input").forEach((i) => i.addEventListener("input", () => i.closest(".field")?.classList.remove("error")));
-      
-      const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-      let resetEmail = "";
-      
-      async function api(path, body) {
-        const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-        return r.json();
-      }
-      
+      $$("input").forEach((i) => i.addEventListener("input", () => i.closest(".field, .otp")?.classList.remove("error")));
+      async function api(path, body) { const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); return r.json(); }
       async function submit(form, fn) {
         const btn = form.querySelector(".btn"); btn.classList.add("loading"); btn.disabled = true;
         try { await fn(); } catch (e) { console.error(e); toast("Could not reach the server"); }
         btn.classList.remove("loading"); btn.disabled = false;
       }
-      
-      const guard = (form, checks, fn) => form.addEventListener("submit", (e) => {
-        e.preventDefault(); const results = checks.map((c) => bad(c[0], c[1]()));
-        if (results.some(Boolean)) return; submit(form, fn);
+      const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+      let resetEmail = "";
+      $("#login").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const u = bad($("#l-user"), !$("#l-user").value.trim());
+        const p = bad($("#l-pass"), $("#l-pass").value.length < 8);
+        if (u || p) return;
+        submit($("#login"), async () => {
+          const r = await api("/api/login", { login: $("#l-user").value.trim(), password: $("#l-pass").value, remember: $("#remember").checked });
+          if (r.ok) { toast("Welcome back!"); setTimeout(() => location.href = "/dashboard", 700); } else { toast(r.error); bad($("#l-pass"), true); }
+        });
       });
-
-      guard($("#login"), [[$("#l-user"), () => !$("#l-user").value.trim()], [$("#l-pass"), () => $("#l-pass").value.length < 8]], async () => {
-        const r = await api("/api/login", { login: $("#l-user").value.trim(), password: $("#l-pass").value, remember: $("#remember").checked });
-        if (r.ok) { toast("Welcome back!"); setTimeout(() => { window.location.href = "/dashboard"; }, 800); } else { toast(r.error); }
+      const score = (v) => { let s = 0; if (v.length >= 8) s++; if (/[A-Z]/.test(v) && /[a-z]/.test(v)) s++; if (/\d/.test(v)) s++; if (/[^A-Za-z0-9]/.test(v) && v.length >= 12) s++; return s; };
+      const updateMeter = () => {
+        const v = $("#s-pass").value, s = score(v);
+        $("#meter").dataset.score = String(s);
+        $("#meterLabel").textContent = ["Use at least 8 characters", "Weak — add mixed case", "Fair — add numbers", "Good — add a symbol or lengthen", "Strong password"][s];
+      };
+      $("#s-pass").addEventListener("input", updateMeter); updateMeter();
+      $("#signup").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const u = bad($("#s-user"), !$("#s-user").value.trim());
+        const em = bad($("#s-email"), !emailOk($("#s-email").value));
+        const pw = bad($("#s-pass"), $("#s-pass").value.length < 8);
+        if (u || em || pw) return;
+        submit($("#signup"), async () => {
+          const r = await api("/api/signup", { username: $("#s-user").value.trim(), email: $("#s-email").value.trim(), password: $("#s-pass").value });
+          if (r.ok) { toast("Account created. Please log in."); go("login"); } else { toast(r.error); }
+        });
       });
-
-      guard($("#signup"), [[$("#s-user"), () => !$("#s-user").value.trim()], [$("#s-email"), () => !emailOk($("#s-email").value)], [$("#s-pass"), () => $("#s-pass").value.length < 8]], async () => {
-        const r = await api("/api/signup", { username: $("#s-user").value.trim(), email: $("#s-email").value.trim(), password: $("#s-pass").value });
-        if (r.ok) { toast("Account created. Please log in."); go("login"); } else { toast(r.error); }
+      $("#forgot").addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (bad($("#f-email"), !emailOk($("#f-email").value))) return;
+        submit($("#forgot"), async () => {
+          resetEmail = $("#f-email").value.trim();
+          await api("/api/forgot-password", { email: resetEmail });
+          $("#resetSub").textContent = `We sent a 6-digit code to ${resetEmail}. Enter it below with a new password.`;
+          toast("If that email exists, a code was sent."); go("reset");
+          setTimeout(() => $("#otp input")[0].focus(), 400);
+        });
       });
-
-      guard($("#forgot"), [[$("#f-email"), () => !emailOk($("#f-email").value)]], async () => {
-        resetEmail = $("#f-email").value.trim();
-        await api("/api/forgot-password", { email: resetEmail });
-        toast("If that email exists, a code was sent."); go("reset");
+      const otpInputs = $$("#otp input");
+      otpInputs.forEach((inp, i) => {
+        inp.addEventListener("input", () => {
+          inp.value = inp.value.replace(/\D/g, "").slice(0, 1);
+          if (inp.value && i < otpInputs.length - 1) otpInputs[i + 1].focus();
+          if (i === otpInputs.length - 1 && inp.value) $("#reset").requestSubmit();
+        });
+        inp.addEventListener("keydown", (e) => {
+          if (e.key === "Backspace" && !inp.value && i > 0) otpInputs[i - 1].focus();
+          if (e.key === "ArrowLeft" && i > 0) otpInputs[i - 1].focus();
+          if (e.key === "ArrowRight" && i < otpInputs.length - 1) otpInputs[i + 1].focus();
+        });
+        inp.addEventListener("paste", (e) => {
+          e.preventDefault();
+          const text = (e.clipboardData.getData("text") || "").replace(/\D/g, "").slice(0, 6);
+          text.split("").forEach((ch, j) => { if (otpInputs[j]) otpInputs[j].value = ch; });
+          (otpInputs[text.length] || otpInputs[otpInputs.length - 1]).focus();
+          if (text.length === 6) $("#reset").requestSubmit();
+        });
       });
-
-      guard($("#reset"), [[$("#r-otp"), () => !/^\d{6}$/.test($("#r-otp").value)], [$("#r-pass"), () => $("#r-pass").value.length < 8]], async () => {
-        const r = await api("/api/reset-password", { email: resetEmail, otp: $("#r-otp").value, new_password: $("#r-pass").value });
-        if (r.ok) { toast("Password changed. Log in again."); go("login"); } else { toast(r.error); }
+      $("#reset").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const code = otpInputs.map(i => i.value).join("");
+        const otpBad = code.length !== 6;
+        otpInputs.forEach(i => bad(i, otpBad));
+        const pw = bad($("#r-pass"), $("#r-pass").value.length < 8);
+        if (otpBad || pw) return;
+        submit($("#reset"), async () => {
+          const r = await api("/api/reset-password", { email: resetEmail, otp: code, new_password: $("#r-pass").value });
+          if (r.ok) { toast("Password changed. Log in again."); go("login"); } else { toast(r.error); otpInputs.forEach(i => bad(i, true)); }
+        });
       });
     </script>
   </body>
