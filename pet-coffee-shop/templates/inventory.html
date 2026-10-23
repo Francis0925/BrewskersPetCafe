@@ -105,11 +105,9 @@ document.querySelectorAll("th[data-sort]").forEach(th => {
     if (sortKey === k) sortDir *= -1; else { sortKey = k; sortDir = 1; }
     document.querySelectorAll("th[data-sort]").forEach(x => x.classList.remove("asc","desc"));
     th.classList.add(sortDir === 1 ? "asc" : "desc");
-
     const allRows = [...document.querySelectorAll("#rows tr")];
     const visible = allRows.filter(r => !r.hidden);
     const hidden  = allRows.filter(r => r.hidden);
-
     visible.sort((a, b) => {
       const av = parseFloat(a.dataset[k]) || a.dataset[k] || a.children[0].textContent;
       const bv = parseFloat(b.dataset[k]) || b.dataset[k] || b.children[0].textContent;
@@ -117,7 +115,6 @@ document.querySelectorAll("th[data-sort]").forEach(th => {
       if (av > bv) return  sortDir;
       return 0;
     });
-
     const tbody = $("#rows");
     tbody.innerHTML = "";
     visible.forEach(r => tbody.appendChild(r));
@@ -126,18 +123,19 @@ document.querySelectorAll("th[data-sort]").forEach(th => {
 });
 async function saveStock(id, stock) {
   const r = await api(`/api/products/${id}/stock`, { stock: +stock });
-  r.ok ? toast("Stock updated") : toast(r.error);
+  r.ok ? toast("Stock updated", "success") : toast(r.error, "error");
 }
 async function quickRestock(id) {
   const amount = parseInt(prompt("Restock how many?", "20") || "0", 10);
   if (!amount) return;
   const r = await api(`/api/products/${id}/stock`, { stock: amount, restock: true });
-  r.ok ? location.reload() : toast(r.error);
+  r.ok ? location.reload() : toast(r.error, "error");
 }
 async function removeItem(id) {
   if (!confirm("Remove this item from the menu?")) return;
   await api(`/api/products/${id}`, {}, "DELETE");
-  toast("Item removed"); setTimeout(() => location.reload(), 600);
+  toast("Item removed", "success");
+  setTimeout(() => location.reload(), 600);
 }
 </script>
 {% endblock %}

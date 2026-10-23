@@ -7,6 +7,7 @@
        subtitle = "A quick look at your café and pet lounge today.",
        action   = '<a class="btn" href="/pos">+ New order</a>'
   ) }}
+
   <div class="grid3">
     <a class="stat link" href="/appointments">
       <small><span class="live"></span>PET APPOINTMENTS TODAY</small>
@@ -24,6 +25,7 @@
       <p>{{ 'Action needed' if low_stock_count else 'Stock looks healthy' }}</p>
     </a>
   </div>
+
   <div class="cols">
     <div class="panel">
       <div class="panel-head">
@@ -34,7 +36,10 @@
         {% for a in appointments %}
           <a class="item" href="/appointments">
             <div class="pic c{{ a.appointment_id % 4 }}">{{ '🐱' if a.pet_type == 'Cat' else '🐶' }}</div>
-            <div class="grow"><h4>{{ a.pet_name }}</h4><p>{{ a.service_name }} · {{ a.owner_name }}</p></div>
+            <div class="grow">
+              <h4>{{ a.pet_name }}</h4>
+              <p>{{ a.service_name }} · {{ a.owner_name }}</p>
+            </div>
             <div class="time">{{ a.appt_time }}</div>
           </a>
         {% else %}

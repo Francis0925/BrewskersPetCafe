@@ -8,7 +8,7 @@
     <style>
       :root {
         --beige: #f5f1e3; --beige-soft: #faf6ec; --beige-deep: #ece2c4;
-        --dutch: #e2d4ad; --tan: #c9a875; --cham: #9d825d; --drab: #6c4f2a;
+        --tan: #c9a875; --cham: #9d825d; --drab: #6c4f2a;
         --ink: #3b2a20; --bg: #e9dec5; --card: #fdf8ec;
         --field: var(--beige-deep); --text: var(--ink); --muted: #8b7a5e;
         --line: rgba(59, 42, 32, 0.10);
@@ -154,12 +154,22 @@
       .otp input.error { border-color: var(--err); animation: shake 0.4s; }
       .toast {
         position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-        transform: translate(-50%, 30px); opacity: 0; z-index: 5; background: var(--ink); color: var(--beige);
+        transform: translate(-50%, 30px); opacity: 0; z-index: 5;
+        background: var(--ink); color: var(--beige);
         padding: 12px 20px; border-radius: 14px; font-size: 0.9rem;
+        box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.4);
         transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
         pointer-events: none; max-width: 90vw; text-align: center;
+        display: flex; align-items: center; gap: 10px;
       }
       .toast.show { transform: translate(-50%, 0); opacity: 1; }
+      .toast.success { background: #2f5d3a; color: #f1f7f2; }
+      .toast.error   { background: #7a3526; color: #fbe9e3; }
+      .toast .toast-ic {
+        width: 18px; height: 18px; border-radius: 50%;
+        display: grid; place-items: center; font-size: 11px; font-weight: 700;
+        background: rgba(255, 255, 255, 0.18); flex: none;
+      }
       @media (max-width: 900px) {
         .floating-container { flex-direction: column; padding: 24px 20px; min-height: 0; border-radius: 24px; }
         .floating-container::before { display: none; }
@@ -177,8 +187,8 @@
           <form class="view active" id="login" novalidate>
             <h1 class="title">Welcome back!</h1>
             <p class="sub">Sign in to the Brewskers staff console.</p>
-            <div class="field"><input id="l-user" placeholder=" " autocomplete="username" /><label for="l-user">Email or username</label></div>
-            <div class="msg">Enter your email or username</div>
+            <div class="field"><input id="l-user" placeholder=" " autocomplete="username" /><label for="l-user">Username</label></div>
+            <div class="msg">Enter your username</div>
             <div class="field">
               <input id="l-pass" type="password" placeholder=" " autocomplete="current-password" />
               <label for="l-pass">Password</label>
@@ -193,25 +203,7 @@
             </div>
             <button class="btn"><span class="t">Sign in</span><span class="spin"></span></button>
             <p class="trust"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Encrypted session · Internal use only</p>
-            <p class="foot">New staff member? <button type="button" class="link" data-go="signup">Create account</button></p>
-          </form>
-          <form class="view" id="signup" novalidate>
-            <h1 class="title">Create account</h1>
-            <p class="sub">Register a staff account with your manager.</p>
-            <div class="field"><input id="s-user" placeholder=" " autocomplete="username" /><label for="s-user">Username</label></div>
-            <div class="msg">Choose a username</div>
-            <div class="field"><input id="s-email" type="email" placeholder=" " autocomplete="email" /><label for="s-email">Email</label></div>
-            <div class="msg">Enter a valid email</div>
-            <div class="field">
-              <input id="s-pass" type="password" placeholder=" " autocomplete="new-password" />
-              <label for="s-pass">Password</label>
-              <button type="button" class="eye" aria-label="Show password" data-target="s-pass"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
-            </div>
-            <div class="meter" data-score="0" id="meter"><span></span><span></span><span></span><span></span></div>
-            <div class="meter-label" id="meterLabel">Use at least 8 characters</div>
-            <div class="msg">Password must be at least 8 characters</div>
-            <button class="btn"><span class="t">Sign up</span><span class="spin"></span></button>
-            <p class="foot">Already have an account? <button type="button" class="link" data-go="login">Log in</button></p>
+            <p class="foot">Accounts are created by the admin.</p>
           </form>
           <form class="view" id="forgot" novalidate>
             <button type="button" class="link back" data-go="login">‹ Back to sign in</button>
@@ -265,7 +257,16 @@
     <script>
       const $  = (s) => document.querySelector(s);
       const $$ = (s) => [...document.querySelectorAll(s)];
-      const toast = (t) => { const e = $("#toast"); e.textContent = t; e.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove("show"), 2600); };
+      const toast = (text, type) => {
+        const e = $("#toast");
+        e.innerHTML = '<span class="toast-ic">' + (
+          type === "error" ? "!" : type === "info" ? "i" : "✓"
+        ) + '</span><span class="toast-text"></span>';
+        e.querySelector(".toast-text").textContent = text;
+        e.className = "toast " + (type || "success") + " show";
+        clearTimeout(toast.t);
+        toast.t = setTimeout(() => e.classList.remove("show"), type === "error" ? 4000 : 2500);
+      };
       function go(id) {
         const card = $("#card"), h = card.offsetHeight;
         card.style.height = h + "px";
@@ -296,7 +297,7 @@
       async function api(path, body) { const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); return r.json(); }
       async function submit(form, fn) {
         const btn = form.querySelector(".btn"); btn.classList.add("loading"); btn.disabled = true;
-        try { await fn(); } catch (e) { console.error(e); toast("Could not reach the server"); }
+        try { await fn(); } catch (e) { console.error(e); toast("Could not reach the server", "error"); }
         btn.classList.remove("loading"); btn.disabled = false;
       }
       const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -307,26 +308,16 @@
         const p = bad($("#l-pass"), $("#l-pass").value.length < 8);
         if (u || p) return;
         submit($("#login"), async () => {
-          const r = await api("/api/login", { login: $("#l-user").value.trim(), password: $("#l-pass").value, remember: $("#remember").checked });
-          if (r.ok) { toast("Welcome back!"); setTimeout(() => location.href = "/dashboard", 700); } else { toast(r.error); bad($("#l-pass"), true); }
-        });
-      });
-      const score = (v) => { let s = 0; if (v.length >= 8) s++; if (/[A-Z]/.test(v) && /[a-z]/.test(v)) s++; if (/\d/.test(v)) s++; if (/[^A-Za-z0-9]/.test(v) && v.length >= 12) s++; return s; };
-      const updateMeter = () => {
-        const v = $("#s-pass").value, s = score(v);
-        $("#meter").dataset.score = String(s);
-        $("#meterLabel").textContent = ["Use at least 8 characters", "Weak — add mixed case", "Fair — add numbers", "Good — add a symbol or lengthen", "Strong password"][s];
-      };
-      $("#s-pass").addEventListener("input", updateMeter); updateMeter();
-      $("#signup").addEventListener("submit", (e) => {
-        e.preventDefault();
-        const u = bad($("#s-user"), !$("#s-user").value.trim());
-        const em = bad($("#s-email"), !emailOk($("#s-email").value));
-        const pw = bad($("#s-pass"), $("#s-pass").value.length < 8);
-        if (u || em || pw) return;
-        submit($("#signup"), async () => {
-          const r = await api("/api/signup", { username: $("#s-user").value.trim(), email: $("#s-email").value.trim(), password: $("#s-pass").value });
-          if (r.ok) { toast("Account created. Please log in."); go("login"); } else { toast(r.error); }
+          const r = await api("/api/login", { username: $("#l-user").value.trim(), password: $("#l-pass").value, remember: $("#remember").checked });
+          if (r.ok) {
+            toast("Welcome back!", "success");
+            setTimeout(() => {
+              location.href = r.must_change_password ? "/first-login" : "/landing";
+            }, 700);
+          } else {
+            toast(r.error || "Sign in failed", "error");
+            bad($("#l-pass"), true);
+          }
         });
       });
       $("#forgot").addEventListener("submit", (e) => {
@@ -336,7 +327,8 @@
           resetEmail = $("#f-email").value.trim();
           await api("/api/forgot-password", { email: resetEmail });
           $("#resetSub").textContent = `We sent a 6-digit code to ${resetEmail}. Enter it below with a new password.`;
-          toast("If that email exists, a code was sent."); go("reset");
+          toast("If that email exists, a code was sent.", "info");
+          go("reset");
           setTimeout(() => $("#otp input")[0].focus(), 400);
         });
       });
@@ -369,7 +361,8 @@
         if (otpBad || pw) return;
         submit($("#reset"), async () => {
           const r = await api("/api/reset-password", { email: resetEmail, otp: code, new_password: $("#r-pass").value });
-          if (r.ok) { toast("Password changed. Log in again."); go("login"); } else { toast(r.error); otpInputs.forEach(i => bad(i, true)); }
+          if (r.ok) { toast("Password changed. Please log in.", "success"); go("login"); }
+          else { toast(r.error || "Reset failed", "error"); otpInputs.forEach(i => bad(i, true)); }
         });
       });
     </script>

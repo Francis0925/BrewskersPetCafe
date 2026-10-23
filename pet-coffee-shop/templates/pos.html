@@ -6,10 +6,12 @@
     {{ ph.page_header(
          title    = "Point of sale",
          subtitle = "Ring up orders and keep the line moving.",
-         action   = '<span class="eyebrow muted-greet">Good day, ' ~ user.username ~ '</span>'
+         action   = '<span class="muted-greet">Good day, <b>' ~ user.username ~ '</b></span>'
     ) }}
 
-    <input class="searchbar" id="search" placeholder="Search menu items..." oninput="draw()" />
+    <div class="pos-toolbar">
+      <input class="searchbar" id="search" placeholder="Search menu items..." oninput="draw()" />
+    </div>
     <div class="chips" id="chips"></div>
     <div class="products" id="grid"></div>
   </main>
@@ -66,7 +68,6 @@ let category = "All";
 let lastReceipt = null;
 
 const categories = ["All", ...new Set(products.map(p => p.category))];
-const $ = (s) => document.querySelector(s);
 const peso = (n) => "₱" + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function draw() {
@@ -81,14 +82,16 @@ function draw() {
       ${p.stock <= 0   ? `<i class="oos">Out</i>` : ""}
       <b>${p.name}</b>
       <div class="serif price"><span>${peso(p.price)}</span><span>${p.stock} left</span></div>
-    </button>`).join("");
+    </button>`).join("") || '<div class="empty pos-empty">No items in this category yet.</div>';
 }
+
 function add(id) {
   const p = products.find(x => x.product_id === id);
-  if (p.stock <= 0) return toast(`${p.name} is out of stock`);
-  if ((cart[id] || 0) >= p.stock) return toast(`No more stock for ${p.name}`);
+  if (p.stock <= 0) return toast(`${p.name} is out of stock`, "error");
+  if ((cart[id] || 0) >= p.stock) return toast(`No more stock for ${p.name}`, "error");
   cart[id] = (cart[id] || 0) + 1; drawCart();
 }
+
 function change(id, step) { cart[id] += step; if (cart[id] < 1) delete cart[id]; drawCart(); }
 
 function drawCart() {
@@ -120,15 +123,17 @@ function drawCart() {
       : "Change: ₱0.00";
   }
 }
+
 function toggleCash() { $("#cashBox").hidden = $("#method").value !== "cash"; drawCart(); }
 
 function holdOrder() {
-  if (!Object.keys(cart).length) return toast("Cart is empty");
+  if (!Object.keys(cart).length) return toast("Cart is empty", "error");
   heldOrders.push({ items: {...cart}, customer: $("#customer").value, at: Date.now() });
   localStorage.setItem("held", JSON.stringify(heldOrders));
   cart = {}; $("#customer").value = ""; drawCart(); renderHeld();
-  toast("Order held — take the next customer");
+  toast("Order held — take the next customer", "success");
 }
+
 function renderHeld() {
   if (!heldOrders.length) { $("#heldPanel").hidden = true; return; }
   $("#heldPanel").hidden = false;
@@ -144,6 +149,7 @@ function renderHeld() {
     </div>`;
   }).join("");
 }
+
 function resume(i) {
   cart = {...heldOrders[i].items};
   $("#customer").value = heldOrders[i].customer || "";
@@ -151,6 +157,7 @@ function resume(i) {
   localStorage.setItem("held", JSON.stringify(heldOrders));
   renderHeld(); drawCart();
 }
+
 function dropHeld(i) {
   heldOrders.splice(i, 1);
   localStorage.setItem("held", JSON.stringify(heldOrders));
@@ -158,14 +165,14 @@ function dropHeld(i) {
 }
 
 async function charge() {
-  if (!Object.keys(cart).length) return toast("Cart is empty");
+  if (!Object.keys(cart).length) return toast("Cart is empty", "error");
   const items = Object.entries(cart).map(([id, quantity]) => ({ product_id: +id, quantity }));
   const payload = { items, customer_name: $("#customer").value, payment_method: $("#method").value };
   if ($("#method").value === "cash") payload.amount_paid = parseFloat($("#tendered").value || 0);
   const result = await api("/api/orders", payload);
-  if (!result.ok) return toast(result.error);
+  if (!result.ok) return toast(result.error, "error");
   lastReceipt = result;
-  toast(`Order ${result.order_no} paid · ${peso(result.total)} · change ${peso(result.change)}`);
+  toast(`Order ${result.order_no} paid · ${peso(result.total)} · change ${peso(result.change)}`, "success");
   cart = {}; $("#tendered").value = ""; $("#customer").value = "";
   drawCart();
   setTimeout(() => location.reload(), 1500);
