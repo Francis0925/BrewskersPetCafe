@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% import "_partials/page_header.html" as ph %}
+{% block page %}
+<main>
+  {{ ph.page_header(
+       title    = "Hello, " ~ user.username ~ "!",
+       subtitle = "A quick look at your café and pet lounge today.",
+       action   = '<a class="btn" href="/pos">+ New order</a>'
+  ) }}
+
+  <div class="grid3">
+    <a class="stat link" href="/appointments">
+      <small><span class="live"></span>PET APPOINTMENTS TODAY</small>
+      <div class="n">{{ appointments|length }}</div>
+      <p>{{ ('Next at ' ~ appointments[0].appt_time) if appointments else 'Nothing booked yet' }}</p>
+    </a>
+    <a class="stat link" href="/pos">
+      <small><span class="live"></span>COFFEE SHOP ORDERS</small>
+      <div class="n">{{ sales.order_count }}</div>
+      <p>{{ "₱{:,.2f}".format(sales.total_sales) }} in sales today</p>
+    </a>
+    <a class="stat link" href="/inventory">
+      <small>LOW-STOCK ITEMS</small>
+      <div class="n {{ 'red' if low_stock_count else '' }}">{{ low_stock_count }}</div>
+      <p>{{ 'Action needed' if low_stock_count else 'Stock looks healthy' }}</p>
+    </a>
+  </div>
+
+  <div class="cols">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Today's appointments</h2>
+        <a href="/schedule" class="link">Open calendar ›</a>
+      </div>
+      <div class="list">
+        {% for a in appointments %}
+          <a class="item" href="/appointments">
+            <div class="pic c{{ a.appointment_id % 4 }}">{{ '🐱' if a.pet_type == 'Cat' else '🐶' }}</div>
+            <div class="grow">
+              <h4>{{ a.pet_name }}</h4>
+              <p>{{ a.service_name }} · {{ a.owner_name }}</p>
+            </div>
+            <div class="time">{{ a.appt_time }}</div>
+          </a>
+        {% else %}
+          <div class="empty">No visits today. <a href="/schedule"><u>Open the calendar</u></a></div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="summary">
+      <small>TODAY'S CAFÉ</small>
+      <h2 class="display">{{ "₱{:,.2f}".format(sales.total_sales) }}</h2>
+      <div class="row"><span>Completed orders</span><b>{{ sales.order_count }}</b></div>
+      <div class="row"><span>Average ticket</span><b>{{ "₱{:,.2f}".format(average_ticket) }}</b></div>
+      <div class="row"><span>Top seller</span><b>{{ top_seller }}</b></div>
+      <a class="btn wide" href="/pos">Open point of sale</a>
+    </div>
+  </div>
+</main>
+{% endblock %}

@@ -1,0 +1,102 @@
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+  <form onsubmit="submitAppt(event)">
+    <h2>Set appointment</h2>
+    <div class="two">
+      <input name="pet_name" placeholder="Pet name" maxlength="20" data-nodigits required>
+      <select name="pet_type"><option>Dog</option><option>Cat</option></select>
+    </div>
+    <input name="breed" placeholder="Breed" maxlength="30" data-nodigits>
+    <div class="two">
+      <input name="age_num" placeholder="Age (e.g. 2)" inputmode="numeric" maxlength="2">
+      <select name="age_unit">
+        <option value="year">Year(s)</option>
+        <option value="month">Month(s)</option>
+      </select>
+    </div>
+    <div class="two">
+      <input name="owner_name" placeholder="Owner name" maxlength="20" data-nodigits required>
+      <input name="phone" type="tel" inputmode="tel" placeholder="+63"
+             maxlength="13" pattern="^(\+63|0)9\d{9}$"
+             title="Philippine mobile number: 09XXXXXXXXX or +639XXXXXXXXX" required>
+    </div>
+    <select name="service_id" required>
+      {% for s in services %}<option value="{{ s.service_id }}">{{ s.name }}</option>{% endfor %}
+    </select>
+    <div class="two">
+      <input type="date" name="appt_date" required>
+      <input type="time" name="appt_time" required>
+    </div>
+
+    <div class="filepick">
+      <label class="btn ghost small" for="photo_file">📷 Choose photo</label>
+      <span id="photoName">No file chosen</span>
+      <img id="photoPreview" alt="" hidden>
+      <input type="file" id="photo_file" name="photo_file" accept="image/*" hidden>
+    </div>
+
+    <textarea name="notes" rows="2" placeholder="Guest notes" id="notes"></textarea>
+    <button class="btn green wide">Save appointment</button>
+  </form>
+</div>
+
+<style>
+  #modal textarea { resize: none; overflow-y: hidden; max-height: 200px; }
+  #modal .filepick { display: flex; align-items: center; gap: 10px; }
+  #modal .filepick label { margin: 0; cursor: pointer; }
+  #modal .filepick span { flex: 1; min-width: 0; font-size: .85rem; color: var(--muted);
+                          white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #modal .filepick img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; }
+</style>
+
+<script>
+document.querySelectorAll("#modal [data-nodigits]").forEach(el =>
+  el.addEventListener("input", () => { el.value = el.value.replace(/\d/g, ""); }));
+
+const phone = document.querySelector("#modal [name=phone]");
+phone.addEventListener("input", () => {
+  phone.value = phone.value.replace(/[^\d+]/g, "").replace(/(?!^)\+/g, "");
+});
+
+const ageNum = document.querySelector("#modal [name=age_num]");
+ageNum.addEventListener("input", () => { ageNum.value = ageNum.value.replace(/\D/g, ""); });
+
+const notes = document.getElementById("notes");
+const grow = () => {
+  notes.style.height = "auto";
+  notes.style.height = Math.min(notes.scrollHeight, 200) + "px";
+  notes.style.overflowY = notes.scrollHeight > 200 ? "auto" : "hidden";
+};
+notes.addEventListener("input", grow);
+
+document.getElementById("photo_file").addEventListener("change", e => {
+  const f = e.target.files[0], img = document.getElementById("photoPreview");
+  document.getElementById("photoName").textContent = f ? f.name : "No file chosen";
+  img.hidden = !f;
+  if (f) img.src = URL.createObjectURL(f);
+});
+
+const resizePhoto = (file, max = 600) => new Promise(done => {
+  const img = new Image();
+  img.onload = () => {
+    const s = Math.min(1, max / Math.max(img.width, img.height));
+    const c = document.createElement("canvas");
+    c.width = img.width * s; c.height = img.height * s;
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    done(c.toDataURL("image/jpeg", 0.8));
+  };
+  img.src = URL.createObjectURL(file);
+});
+async function submitAppt(e) {
+  e.preventDefault();
+  const f = e.target, data = Object.fromEntries(new FormData(f));
+  delete data.photo_file;
+
+  const n = data.age_num, unit = data.age_unit;
+  data.pet_age = n ? `${n} ${unit}${+n === 1 ? "" : "s"}` : "";
+  delete data.age_num; delete data.age_unit;
+
+  if (f.photo_file.files[0]) data.photo = await resizePhoto(f.photo_file.files[0]);
+  const r = await api("/api/appointments", data);
+  r.ok ? location.reload() : toast(r.error);
+}
+</script>

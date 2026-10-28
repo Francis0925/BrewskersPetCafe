@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% import "_partials/page_header.html" as ph %}
+{% block page %}
+<main>
+  {{ ph.page_header(
+       title    = "Reports",
+       subtitle = "Today's café performance and stock health.",
+       action   = '<button class="btn ghost small" onclick="window.print()">Print</button>'
+  ) }}
+
+  <div class="grid3">
+    <div class="stat">
+      <small>TODAY'S ORDERS</small>
+      <div class="n">{{ today_sales.order_count }}</div>
+      <p>{{ "₱{:,.2f}".format(today_sales.total_sales) }} in sales</p>
+    </div>
+    <div class="stat">
+      <small>7-DAY ORDERS</small>
+      <div class="n">{{ week_sales.order_count }}</div>
+      <p>{{ "₱{:,.2f}".format(week_sales.total_sales) }} this week</p>
+    </div>
+    <div class="stat">
+      <small>AVG TICKET (7D)</small>
+      <div class="n">{{ "₱{:,.0f}".format(week_sales.total_sales / week_sales.order_count) if week_sales.order_count else "₱0" }}</div>
+      <p>Per order, last 7 days</p>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Last 7 days</h2>
+        <small style="color:var(--muted)">Sales by day</small>
+      </div>
+      <div class="bar-chart" id="barChart">
+        {% set max_total = (daily|map(attribute='total')|list|max) if daily else 1 %}
+        {% for d in daily %}
+          <div class="bar-col">
+            <div class="bar" style="height: {{ (d.total / max_total * 100) if max_total else 0 }}%"></div>
+            <small>{{ d.day[5:] }}</small>
+            <b>{{ "₱{:,.0f}".format(d.total) }}</b>
+          </div>
+        {% else %}
+          <div class="empty">No sales in the last 7 days yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Top sellers</h2>
+        <small style="color:var(--muted)">Last 7 days</small>
+      </div>
+      <div class="list">
+        {% for t in top_sellers %}
+          <div class="item">
+            <div class="pic c{{ loop.index0 }}">{{ t.name[0]|upper }}</div>
+            <div class="grow">
+              <h4>{{ t.name }}</h4>
+              <p>{{ t.qty }} sold · {{ "₱{:,.0f}".format(t.revenue) }}</p>
+            </div>
+          </div>
+        {% else %}
+          <div class="empty">No sales yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="cols" style="grid-template-columns: minmax(0,1fr) minmax(0,1fr);">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Low stock</h2>
+        <small style="color:var(--muted)">{{ low_stock|length }} item{{ '' if low_stock|length == 1 else 's' }} at or below {{ low_stock_limit }}</small>
+      </div>
+      <div class="list">
+        {% for p in low_stock %}
+          <div class="item">
+            <div class="grow">
+              <h4>{{ p.name }}</h4>
+              <p>{{ p.category }} · {{ "₱{:,.2f}".format(p.price) }}</p>
+            </div>
+            <div class="time {{ 'red' if p.stock == 0 else '' }}">{{ p.stock }} left</div>
+          </div>
+        {% else %}
+          <div class="empty">All items are well stocked.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Upcoming appointments</h2>
+        <a href="/schedule" class="link">Open calendar ›</a>
+      </div>
+      <div class="list">
+        {% for a in upcoming %}
+          <a class="item" href="/appointments">
+            <div class="pic c{{ a.appointment_id % 4 }}">{{ '🐱' if a.pet_type == 'Cat' else '🐶' }}</div>
+            <div class="grow">
+              <h4>{{ a.pet_name }}</h4>
+              <p>{{ a.service_name }} · {{ a.owner_name }}</p>
+            </div>
+            <div class="time">{{ a.appt_date[5:] }}<br><small>{{ a.appt_time }}</small></div>
+          </a>
+        {% else %}
+          <div class="empty">No upcoming appointments.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
