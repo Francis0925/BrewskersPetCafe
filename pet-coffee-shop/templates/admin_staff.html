@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% import "_partials/page_header.html" as ph %}
+{% block page %}
+<style>
+  /* Staff list rows: info on the left, controls grouped on the right */
+  .staff-item { flex-wrap: wrap; cursor: default; row-gap: 10px; }
+  .staff-item .grow { flex: 1 1 200px; }
+  .staff-item h4 { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .staff-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; margin-left: auto; }
+  .staff-actions select {
+    width: 128px; height: 36px; margin: 0; padding: 0 30px 0 12px;
+    font-size: .8rem; border-radius: 10px;
+  }
+  .staff-actions .btn.small {
+    height: 36px; padding: 0 14px; white-space: nowrap; flex: 0 0 auto;
+  }
+</style>
+<main>
+  {{ ph.page_header(
+       title    = "Staff",
+       subtitle = "Create staff accounts, change roles, deactivate users.",
+       action   = '<a class="link" href="/dashboard">‹ Back to dashboard</a>'
+  ) }}
+
+  <div class="cols side" style="grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)">
+    <div class="panel">
+      <div class="panel-head">
+        <h2 class="serif" style="font-size:1.3rem">All staff</h2>
+        <small style="color:var(--muted)">{{ staff|length }} account{{ '' if staff|length == 1 else 's' }}</small>
+      </div>
+      <div class="list">
+        {% for s in staff %}
+          <div class="item staff-item" id="staff{{ s.user_id }}">
+            <div class="avatar">{{ s.username[0]|upper }}</div>
+            <div class="grow">
+              <h4>
+                {{ s.username }}
+                {% if s.deactivated_at %}<span class="badge low">deactivated</span>
+                {% elif s.must_change_password %}<span class="badge">temp password</span>{% endif %}
+              </h4>
+              <p>{{ s.email }} · last login {{ s.last_login_at or "never" }}</p>
+            </div>
+            {% if s.user_id != user.user_id %}
+              <div class="staff-actions">
+              <select onchange="setRole({{ s.user_id }}, this.value)" {% if s.deactivated_at %}disabled{% endif %}>
+                {% for r in roles if r != 'admin' %}
+                  <option value="{{ r }}" {% if s.role == r %}selected{% endif %}>{{ r|capitalize }}</option>
+                {% endfor %}
+              </select>
+              <button class="btn ghost small" onclick="resetPassword({{ s.user_id }}, '{{ s.username|e }}')">Reset pw</button>
+              <button class="btn {{ 'danger' if s.deactivated_at else 'ghost' }} small" onclick="toggleActive({{ s.user_id }}, {{ 'true' if s.deactivated_at else 'false' }})">
+                {{ 'Reactivate' if s.deactivated_at else 'Deactivate' }}
+              </button>
+              </div>
+            {% else %}
+              <span class="badge" style="background:var(--lgreen);color:var(--green)">You</span>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 class="serif" style="font-size:1.3rem;margin-bottom:14px">Add new staff</h2>
+      <form onsubmit="createStaff(event)">
+        <label>Username</label>
+        <input name="username" required>
+        <label>Email</label>
+        <input name="email" type="email" required>
+        <label>Role</label>
+        <select name="role" required>
+          {% for r in roles if r != 'admin' %}
+            <option value="{{ r }}">{{ r|capitalize }}</option>
+          {% endfor %}
+        </select>
+        <label>Password phrase <small style="color:var(--muted);font-weight:400">(4 digits added automatically)</small></label>
+        <input name="phrase" placeholder="e.g. maria">
+        <button class="btn green wide" type="submit">Create account</button>
+      </form>
+
+      <div id="tempResult" hidden style="margin-top:14px;background:var(--lgreen);border:1px solid #bcd0c2;border-radius:14px;padding:14px">
+        <p style="margin:0 0 6px;font-weight:700;color:var(--green)">Account created</p>
+        <p style="margin:0;font-size:.85rem;color:var(--ink-soft)">Temporary password (share with the new staff):</p>
+        <code id="tempPw" style="display:block;margin:6px 0;font-size:1.3rem;font-family:'DM Serif Display',serif;color:var(--ink)"></code>
+        <button class="btn ghost small" onclick="copyTempPw()">Copy</button>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+
+{% block script %}
+<script>
+async function createStaff(e) {
+  e.preventDefault();
+  const f = e.target;
+  const data = Object.fromEntries(new FormData(f));
+  const r = await api("/api/admin/staff", data);
+  if (!r.ok) return toast(r.error, "error");
+  document.getElementById("tempPw").textContent = r.temp_password;
+  document.getElementById("tempResult").hidden = false;
+  toast("Staff account created", "success");
+  f.reset();
+}
+function copyTempPw() {
+  const pw = document.getElementById("tempPw").textContent;
+  navigator.clipboard.writeText(pw);
+  toast("Copied to clipboard", "success");
+}
+async function setRole(id, role) {
+  const r = await api(`/api/admin/staff/${id}/role`, { role });
+  r.ok ? toast("Role updated", "success") : toast(r.error, "error");
+}
+async function toggleActive(id, reactivate) {
+  const msg = reactivate ? "Reactivate this account?" : "Deactivate this account? They will be logged out.";
+  if (!confirm(msg)) return;
+  const r = await api(`/api/admin/staff/${id}/toggle-active`, { active: reactivate });
+  if (r.ok) {
+    toast(reactivate ? "Reactivated" : "Deactivated", "success");
+    setTimeout(() => location.reload(), 500);
+  } else toast(r.error, "error");
+}
+async function resetPassword(id, username) {
+  const phrase = prompt(`Type a phrase (4 digits will be added).\nLeave blank to use the username "${username}".`, username);
+  if (phrase === null) return;
+  const r = await api(`/api/admin/staff/${id}/reset-password`, { phrase });
+  if (!r.ok) return toast(r.error, "error");
+  alert(`New temporary password: ${r.temp_password}\n\nShare this with the staff member. They will be asked to set a new one on next login.`);
+}
+</script>
+{% endblock %}
