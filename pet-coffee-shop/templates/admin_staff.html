@@ -1,6 +1,20 @@
 {% extends "base.html" %}
 {% import "_partials/page_header.html" as ph %}
 {% block page %}
+<style>
+  /* Staff list rows: info on the left, controls grouped on the right */
+  .staff-item { flex-wrap: wrap; cursor: default; row-gap: 10px; }
+  .staff-item .grow { flex: 1 1 200px; }
+  .staff-item h4 { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .staff-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; margin-left: auto; }
+  .staff-actions select {
+    width: 128px; height: 36px; margin: 0; padding: 0 30px 0 12px;
+    font-size: .8rem; border-radius: 10px;
+  }
+  .staff-actions .btn.small {
+    height: 36px; padding: 0 14px; white-space: nowrap; flex: 0 0 auto;
+  }
+</style>
 <main>
   {{ ph.page_header(
        title    = "Staff",
@@ -16,7 +30,7 @@
       </div>
       <div class="list">
         {% for s in staff %}
-          <div class="item" id="staff{{ s.user_id }}">
+          <div class="item staff-item" id="staff{{ s.user_id }}">
             <div class="avatar">{{ s.username[0]|upper }}</div>
             <div class="grow">
               <h4>
@@ -27,6 +41,7 @@
               <p>{{ s.email }} · last login {{ s.last_login_at or "never" }}</p>
             </div>
             {% if s.user_id != user.user_id %}
+              <div class="staff-actions">
               <select onchange="setRole({{ s.user_id }}, this.value)" {% if s.deactivated_at %}disabled{% endif %}>
                 {% for r in roles if r != 'admin' %}
                   <option value="{{ r }}" {% if s.role == r %}selected{% endif %}>{{ r|capitalize }}</option>
@@ -36,6 +51,7 @@
               <button class="btn {{ 'danger' if s.deactivated_at else 'ghost' }} small" onclick="toggleActive({{ s.user_id }}, {{ 'true' if s.deactivated_at else 'false' }})">
                 {{ 'Reactivate' if s.deactivated_at else 'Deactivate' }}
               </button>
+              </div>
             {% else %}
               <span class="badge" style="background:var(--lgreen);color:var(--green)">You</span>
             {% endif %}

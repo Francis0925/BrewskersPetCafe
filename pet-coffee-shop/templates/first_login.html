@@ -4,16 +4,35 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Brewskers – Set your password</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <link
+      rel="icon"
+      type="image/png"
+      href="{{ url_for('static', filename='favicon.png') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
     <style>
       body {
         display: flex;
         align-items: center;
         justify-content: center;
         background:
-          radial-gradient(1200px 600px at 15% 20%, rgba(201,168,117,.18), transparent 60%),
-          radial-gradient(900px 500px at 85% 90%, rgba(108,79,42,.18), transparent 60%),
+          radial-gradient(
+            1200px 600px at 15% 20%,
+            rgba(201, 168, 117, 0.18),
+            transparent 60%
+          ),
+          radial-gradient(
+            900px 500px at 85% 90%,
+            rgba(108, 79, 42, 0.18),
+            transparent 60%
+          ),
           var(--ink);
         color: var(--ink);
       }
@@ -24,23 +43,23 @@
         padding: 32px 36px;
         width: 100%;
         max-width: 380px;
-        box-shadow: 0 30px 60px rgba(0,0,0,.4);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
       }
       .first-card h1 {
-        font-family: 'DM Serif Display', serif;
+        font-family: "DM Serif Display", serif;
         margin: 0 0 6px;
         font-size: 1.7rem;
       }
       .first-card p {
         margin: 0 0 18px;
         color: var(--muted);
-        font-size: .9rem;
+        font-size: 0.9rem;
       }
       .first-card label {
-        font-size: .72rem;
+        font-size: 0.72rem;
         font-weight: 700;
         color: var(--muted);
-        letter-spacing: .06em;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
         display: block;
         margin: 10px 0 4px;
@@ -50,15 +69,30 @@
   <body>
     <form class="first-card" onsubmit="submitNewPassword(event)">
       <h1>Set your password</h1>
-      <p>Welcome, <b>{{ user.username }}</b>. Your temporary password was given by the admin. Choose a new one to continue.</p>
+      <p>
+        Welcome, <b>{{ user.username }}</b>. Your temporary password was given
+        by the admin. Choose a new one to continue.
+      </p>
 
       <label for="np">New password</label>
-      <input id="np" type="password" placeholder="At least 8 characters" minlength="8" required>
+      <input
+        id="np"
+        type="password"
+        placeholder="At least 8 characters"
+        minlength="8"
+        required
+      />
 
       <label for="cp">Confirm new password</label>
-      <input id="cp" type="password" placeholder="Type it again" minlength="8" required>
+      <input
+        id="cp"
+        type="password"
+        placeholder="Type it again"
+        minlength="8"
+        required
+      />
 
-      <button class="btn wide" style="margin-top:14px" type="submit">
+      <button class="btn wide" style="margin-top: 14px" type="submit">
         <span class="t">Save and continue</span>
         <span class="spin"></span>
       </button>
@@ -69,28 +103,35 @@
       const $ = (s) => document.querySelector(s);
       const toast = (text, type) => {
         const e = $("#toast");
-        e.innerHTML = '<span class="toast-ic">' + (
-          type === "error" ? "!" : type === "info" ? "i" : "✓"
-        ) + '</span><span class="toast-text"></span>';
+        e.innerHTML =
+          '<span class="toast-ic">' +
+          (type === "error" ? "!" : type === "info" ? "i" : "✓") +
+          '</span><span class="toast-text"></span>';
         e.querySelector(".toast-text").textContent = text;
         e.className = "toast " + (type || "success") + " show";
         clearTimeout(toast.t);
-        toast.t = setTimeout(() => e.classList.remove("show"), type === "error" ? 4000 : 2500);
+        toast.t = setTimeout(
+          () => e.classList.remove("show"),
+          type === "error" ? 4000 : 2500,
+        );
       };
       async function submitNewPassword(e) {
         e.preventDefault();
         const np = $("#np").value;
         const cp = $("#cp").value;
-        if (np !== cp) { toast("Passwords do not match", "error"); return; }
+        if (np !== cp) {
+          toast("Passwords do not match", "error");
+          return;
+        }
         const r = await fetch("/api/profile/change-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ new_password: np, confirm: cp })
+          body: JSON.stringify({ new_password: np, confirm: cp }),
         });
         const data = await r.json();
         if (data.ok) {
           toast("Password saved", "success");
-          setTimeout(() => location.href = "/landing", 900);
+          setTimeout(() => (location.href = "/landing"), 900);
         } else {
           toast(data.error || "Could not save", "error");
         }

@@ -434,14 +434,20 @@ def pos(user):
 @app.post("/api/orders")
 @require("pos.use")
 def create_order(user):
-    data = request.get_json(force=True)
+    data = request.get_json(force=True) or {}
     cart_items = data.get("items") or []
     if not cart_items:
         return jsonify(ok=False, error="The cart is empty")
+
+    method = data.get("payment_method", "cash")
+    if method not in ("cash", "gcash", "card"):
+        return jsonify(ok=False, error="Unknown payment method")
+
+    cents = decimal.Decimal("0.01")
     db = connect_db()
     cur = db.cursor()
     try:
-        order_total = decimal.Decimal(0)
+        subtotal = decimal.Decimal(0)
         order_lines = []
         for item in cart_items:
             quantity = int(item["quantity"])
@@ -451,42 +457,57 @@ def create_order(user):
             )
             product = cur.fetchone()
             if not product or quantity < 1 or product["stock"] < quantity:
-                db.rollback()
                 return jsonify(ok=False, error=(
                     f"Not enough stock for "
                     f"{product['name'] if product else 'an item'}"
                 ))
-            order_total += product["price"] * quantity
+            # SQLite returns floats; convert via str so Decimal math is exact.
+            price = decimal.Decimal(str(product["price"]))
+            subtotal += price * quantity
             order_lines.append(
-                (product["product_id"], quantity, product["price"])
+                (product["product_id"], product["name"], quantity, price)
             )
-        order_total = (order_total * (1 + TAX_RATE)).quantize(
-            decimal.Decimal("0.01")
+
+        subtotal = subtotal.quantize(cents, rounding=decimal.ROUND_HALF_UP)
+        order_total = (subtotal * (1 + TAX_RATE)).quantize(
+            cents, rounding=decimal.ROUND_HALF_UP
         )
-        amount_paid = decimal.Decimal(
-            str(data.get("amount_paid") or order_total)
-        )
-        if amount_paid < order_total:
-            return jsonify(ok=False, error="Amount paid is less than the total")
-        order_no = "ORD-" + datetime.datetime.now().strftime("%y%m%d%H%M%S")
+        tax = order_total - subtotal
+
+        if method == "cash":
+            try:
+                amount_paid = decimal.Decimal(
+                    str(data.get("amount_paid") or 0)
+                ).quantize(cents, rounding=decimal.ROUND_HALF_UP)
+            except decimal.InvalidOperation:
+                return jsonify(ok=False, error="Enter a valid cash amount")
+            if amount_paid < order_total:
+                return jsonify(
+                    ok=False, error="Amount tendered is less than the total"
+                )
+        else:
+            amount_paid = order_total   # GCash / card are paid in full
+        change = amount_paid - order_total
+
+        order_no = "ORD-" + datetime.datetime.now().strftime("%y%m%d%H%M%S%f")[:14]
         cur.execute(
             """INSERT INTO orders
                  (order_no, customer_name, total_amount, payment_method,
                   amount_paid, change_amount, created_by)
                VALUES (?, ?, ?, ?, ?, ?, ?)""",
             (order_no,
-             (data.get("customer_name") or "Walk-in").strip(),
-             order_total, data.get("payment_method", "cash"),
-             amount_paid, amount_paid - order_total,
+             (data.get("customer_name") or "Walk-in").strip() or "Walk-in",
+             float(order_total), method,
+             float(amount_paid), float(change),
              user["user_id"])
         )
         order_id = cur.lastrowid
-        for product_id, quantity, price in order_lines:
+        for product_id, _name, quantity, price in order_lines:
             cur.execute(
                 "INSERT INTO order_items "
                 "(order_id, product_id, quantity, price) "
                 "VALUES (?, ?, ?, ?)",
-                (order_id, product_id, quantity, price)
+                (order_id, product_id, quantity, float(price))
             )
             cur.execute(
                 "UPDATE products SET stock = stock - ? WHERE product_id = ?",
@@ -494,9 +515,17 @@ def create_order(user):
             )
         db.commit()
         return jsonify(
-            ok=True, order_no=order_no,
-            total=float(order_total), change=float(amount_paid - order_total)
+            ok=True, order_no=order_no, method=method,
+            subtotal=float(subtotal), tax=float(tax),
+            total=float(order_total), paid=float(amount_paid),
+            change=float(change),
+            lines=[{"name": n, "qty": q, "price": float(p)}
+                   for _id, n, q, p in order_lines]
         )
+    except Exception as exc:
+        db.rollback()
+        app.logger.exception("create_order failed")
+        return jsonify(ok=False, error=f"Could not save the order ({exc})")
     finally:
         db.close()
 
