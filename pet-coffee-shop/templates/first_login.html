@@ -3,106 +3,48 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>Brewskers – Set your password</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
     <link
-      rel="icon"
-      type="image/png"
-      href="{{ url_for('static', filename='favicon.png') }}"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap"
       rel="stylesheet"
     />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
-    <style>
-      body {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background:
-          radial-gradient(
-            1200px 600px at 15% 20%,
-            rgba(201, 168, 117, 0.18),
-            transparent 60%
-          ),
-          radial-gradient(
-            900px 500px at 85% 90%,
-            rgba(108, 79, 42, 0.18),
-            transparent 60%
-          ),
-          var(--ink);
-        color: var(--ink);
-      }
-      .first-card {
-        background: var(--card);
-        border: 1px solid var(--line);
-        border-radius: 24px;
-        padding: 32px 36px;
-        width: 100%;
-        max-width: 380px;
-        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
-      }
-      .first-card h1 {
-        font-family: "DM Serif Display", serif;
-        margin: 0 0 6px;
-        font-size: 1.7rem;
-      }
-      .first-card p {
-        margin: 0 0 18px;
-        color: var(--muted);
-        font-size: 0.9rem;
-      }
-      .first-card label {
-        font-size: 0.72rem;
-        font-weight: 700;
-        color: var(--muted);
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        display: block;
-        margin: 10px 0 4px;
-      }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   </head>
-  <body>
-    <form class="first-card" onsubmit="submitNewPassword(event)">
+
+  <body class="auth">
+    <form class="auth-card" onsubmit="submitNewPassword(event)">
+      <img class="brand-mark" src="{{ url_for('static', filename='logo.png') }}" alt="" />
       <h1>Set your password</h1>
       <p>
-        Welcome, <b>{{ user.username }}</b>. Your temporary password was given
-        by the admin. Choose a new one to continue.
+        Welcome, <b>{{ user.username }}</b>. Enter the temporary password
+        provided by the admin, then choose a permanent password.
       </p>
 
-      <label for="np">New password</label>
-      <input
-        id="np"
-        type="password"
-        placeholder="At least 8 characters"
-        minlength="8"
-        required
-      />
+      <label for="temporary-password">Temporary password</label>
+      <input id="temporary-password" name="temporary_password" type="password"
+             autocomplete="current-password" required />
 
-      <label for="cp">Confirm new password</label>
-      <input
-        id="cp"
-        type="password"
-        placeholder="Type it again"
-        minlength="8"
-        required
-      />
+      <label for="new-password">New password</label>
+      <input id="new-password" name="new_password" type="password"
+             placeholder="At least 8 characters" minlength="8"
+             autocomplete="new-password" required />
 
-      <button class="btn wide" style="margin-top: 14px" type="submit">
-        <span class="t">Save and continue</span>
-        <span class="spin"></span>
+      <label for="confirm-password">Confirm new password</label>
+      <input id="confirm-password" name="confirm" type="password"
+             minlength="8" autocomplete="new-password" required />
+
+      <button class="btn wide" type="submit">
+        <span class="t">Save and continue</span><span class="spin"></span>
       </button>
     </form>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
     <script>
-      const $ = (s) => document.querySelector(s);
       const toast = (text, type) => {
-        const e = $("#toast");
+        const e = document.querySelector("#toast");
         e.innerHTML =
           '<span class="toast-ic">' +
           (type === "error" ? "!" : type === "info" ? "i" : "✓") +
@@ -115,27 +57,68 @@
           type === "error" ? 4000 : 2500,
         );
       };
-      async function submitNewPassword(e) {
-        e.preventDefault();
-        const np = $("#np").value;
-        const cp = $("#cp").value;
-        if (np !== cp) {
+
+      async function api(path, body) {
+        let response;
+        try {
+          response = await fetch(path, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-csrf-token":
+                document.querySelector('meta[name="csrf-token"]')?.content || "",
+            },
+            body: JSON.stringify(body),
+          });
+        } catch (err) {
+          return { ok: false, error: "Could not reach the server" };
+        }
+
+        if (response.status === 401) {
+          setTimeout(() => (location.href = "/"), 1200);
+          return { ok: false, error: "Session expired. Please log in again." };
+        }
+
+        try {
+          return await response.json();
+        } catch (err) {
+          return { ok: false, error: "Server error. Please try again." };
+        }
+      }
+
+      async function submitNewPassword(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const temporaryPassword =
+          form.temporary_password.value;
+        const newPassword = form.new_password.value;
+        const confirmation = form.confirm.value;
+
+        if (newPassword !== confirmation) {
           toast("Passwords do not match", "error");
           return;
         }
-        const r = await fetch("/api/profile/change-password", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ new_password: np, confirm: cp }),
-        });
-        const data = await r.json();
-        if (data.ok) {
+
+        const result = await api(
+          "/api/profile/change-password",
+          {
+            temporary_password: temporaryPassword,
+            new_password: newPassword,
+            confirm: confirmation
+          }
+        );
+
+        if (result.ok) {
           toast("Password saved", "success");
           setTimeout(() => (location.href = "/landing"), 900);
         } else {
-          toast(data.error || "Could not save", "error");
+          toast(
+            result.error || "Could not save password",
+            "error"
+          );
         }
       }
     </script>
-  </body>
+    </body>
 </html>

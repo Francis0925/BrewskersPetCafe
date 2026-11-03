@@ -1,11 +1,14 @@
 {% extends "base.html" %}
 {% import "_partials/page_header.html" as ph %}
+
 {% block page %}
 <main>
-  {% set ns = namespace(value=0, low=0) %}
-  {% for p in products %}
-    {% set ns.value = ns.value + p.price * p.stock %}
-    {% if p.stock <= low_stock_limit %}{% set ns.low = ns.low + 1 %}{% endif %}
+  {% set totals = namespace(value=0, low=0) %}
+  {% for product in products %}
+    {% set totals.value = totals.value + product.price * product.stock %}
+    {% if product.stock <= low_stock_limit %}
+      {% set totals.low = totals.low + 1 %}
+    {% endif %}
   {% endfor %}
 
   {{ ph.page_header(
@@ -15,22 +18,56 @@
   ) }}
 
   <div class="grid3">
-    <div class="stat"><small>TOTAL ITEMS</small><div class="n">{{ products|length }}</div><p>Across {{ products|map(attribute='category')|unique|list|length }} categories</p></div>
-    <div class="stat"><small>LOW STOCK</small><div class="n {{ 'red' if ns.low else '' }}">{{ ns.low }}</div><p>{{ low_stock_limit }} or fewer left</p></div>
-    <div class="stat"><small>INVENTORY VALUE</small><div class="n">{{ "₱{:,.0f}".format(ns.value) }}</div><p>Price × stock on hand</p></div>
+    <div class="stat">
+      <small>TOTAL ITEMS</small>
+      <div class="n">{{ products|length }}</div>
+      <p>
+        Across
+        {{ products|map(attribute='category')|unique|list|length }}
+        categories
+      </p>
+    </div>
+
+    <div class="stat">
+      <small>LOW STOCK</small>
+      <div class="n {{ 'red' if totals.low else '' }}">
+        {{ totals.low }}
+      </div>
+      <p>{{ low_stock_limit }} or fewer left</p>
+    </div>
+
+    <div class="stat">
+      <small>INVENTORY VALUE</small>
+      <div class="n">
+        {{ "₱{:,.0f}".format(totals.value) }}
+      </div>
+      <p>Price × stock on hand</p>
+    </div>
   </div>
 
   <div class="tablewrap">
     <div class="tablehead">
-      <h2 class="serif" style="font-size:1.3rem">Stock on hand</h2>
-      <input class="searchbar" id="search" placeholder="Search inventory..." oninput="filterRows()" />
+      <h2>Stock on hand</h2>
+
+      <input
+        class="searchbar"
+        id="search"
+        placeholder="Search inventory..."
+        oninput="filterRows()"
+      />
     </div>
-    <div class="chips" id="cats">
-      <button class="chip on" data-cat="All">All</button>
-      {% for c in products|map(attribute='category')|unique %}
-        <button class="chip" data-cat="{{ c }}">{{ c }}</button>
+
+    <div class="chips" id="categories">
+      <button class="chip on" data-category="All">All</button>
+
+      {% for category in products|map(attribute='category')|unique %}
+        <button class="chip" data-category="{{ category }}">
+          {{ category }}
+        </button>
       {% endfor %}
     </div>
+
+    <div class="table-scroll">
     <table>
       <thead>
         <tr>
@@ -42,40 +79,114 @@
           <th></th>
         </tr>
       </thead>
+
       <tbody id="rows">
-        {% for p in products %}
-          <tr data-name="{{ p.name|lower }}" data-cat="{{ p.category }}" data-stock="{{ p.stock }}" data-price="{{ p.price }}">
-            <td><b>{{ p.name }}</b></td>
-            <td>{{ p.category }}</td>
-            <td><input type="number" min="0" value="{{ p.stock }}" onchange="saveStock({{ p.product_id }}, this.value)" /></td>
-            <td><span class="badge {{ 'low' if p.stock <= low_stock_limit }}">{{ 'Low stock' if p.stock <= low_stock_limit else 'In stock' }}</span></td>
-            <td class="serif" style="font-size:1.1rem">{{ "₱{:,.2f}".format(p.price) }}</td>
+        {% for product in products %}
+          <tr
+            data-name="{{ product.name|lower }}"
+            data-category="{{ product.category }}"
+            data-stock="{{ product.stock }}"
+            data-price="{{ product.price }}"
+          >
+            <td><b>{{ product.name }}</b></td>
+            <td>{{ product.category }}</td>
+
+            <td>
+              <input
+                type="number"
+                min="0"
+                value="{{ product.stock }}"
+                onchange="saveStock(
+                  {{ product.product_id }},
+                  this.value
+                )"
+              />
+            </td>
+
+            <td>
+              <span
+                class="badge {{ 'low' if product.stock <= low_stock_limit }}"
+              >
+                {{
+                  'Low stock'
+                  if product.stock <= low_stock_limit
+                  else 'In stock'
+                }}
+              </span>
+            </td>
+
+            <td class="num">
+              {{ "₱{:,.2f}".format(product.price) }}
+            </td>
+
             <td class="row-actions">
-              {% if p.stock <= low_stock_limit %}<button class="btn ghost small" onclick="quickRestock({{ p.product_id }})">Restock</button>{% endif %}
-              <button class="btn danger small" onclick="removeItem({{ p.product_id }})">Remove</button>
+              {% if product.stock <= low_stock_limit %}
+                <button
+                  class="btn ghost small"
+                  onclick="quickRestock({{ product.product_id }})"
+                >
+                  Restock
+                </button>
+              {% endif %}
+
+              <button
+                class="btn danger small"
+                onclick="removeItem({{ product.product_id }})"
+              >
+                Remove
+              </button>
             </td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
+    </div>
   </div>
 </main>
 
-<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
-  <form onsubmit="submitForm(event,'/api/products')">
+<div
+  class="modal"
+  id="modal"
+  onclick="if(event.target === this) closeModal()"
+>
+  <form onsubmit="submitForm(event, '/api/products')">
     <h2>Add item</h2>
-    <input name="name" placeholder="Item name" required />
+
+    <input
+      name="name"
+      placeholder="Item name"
+      required
+    />
+
     <select name="category" required>
-      <option value="" disabled selected>Select category</option>
+      <option value="" disabled selected>
+        Select category
+      </option>
       <option value="Coffee">Coffee</option>
       <option value="Pastry">Pastry</option>
       <option value="Pet Treats">Pet Treats</option>
     </select>
+
     <div class="two">
-      <input name="price" type="number" step="0.01" min="0" placeholder="Price" required />
-      <input name="stock" type="number" min="0" placeholder="Stock" required />
+      <input
+        name="price"
+        type="number"
+        step="0.01"
+        min="0"
+        placeholder="Price"
+        required
+      />
+
+      <input
+        name="stock"
+        type="number"
+        min="0"
+        placeholder="Stock"
+        required
+      />
     </div>
-    <button class="btn green wide">Save item</button>
+
+    <button class="btn wide">Save item</button>
   </form>
 </div>
 {% endblock %}
@@ -83,59 +194,155 @@
 {% block script %}
 <script>
 function filterRows() {
-  const t = $("#search").value.toLowerCase();
-  const cat = document.querySelector("#cats .chip.on")?.dataset.cat || "All";
-  document.querySelectorAll("#rows tr").forEach(r => {
-    const matchesText = r.dataset.name.includes(t);
-    const matchesCat  = cat === "All" || r.dataset.cat === cat;
-    r.hidden = !(matchesText && matchesCat);
+  const searchText = $("#search").value.toLowerCase();
+  const selectedCategory =
+    document.querySelector("#categories .chip.on")?.dataset.category
+    || "All";
+
+  document.querySelectorAll("#rows tr").forEach((row) => {
+    const matchesName = row.dataset.name.includes(searchText);
+    const matchesCategory =
+      selectedCategory === "All"
+      || row.dataset.category === selectedCategory;
+
+    row.hidden = !(matchesName && matchesCategory);
   });
 }
-document.querySelectorAll("#cats .chip").forEach(c => {
-  c.onclick = () => {
-    document.querySelectorAll("#cats .chip").forEach(x => x.classList.remove("on"));
-    c.classList.add("on"); filterRows();
+
+document.querySelectorAll("#categories .chip").forEach((chip) => {
+  chip.onclick = () => {
+    document
+      .querySelectorAll("#categories .chip")
+      .forEach((item) => item.classList.remove("on"));
+
+    chip.classList.add("on");
+    filterRows();
   };
 });
-let sortKey = null, sortDir = 1;
-document.querySelectorAll("th[data-sort]").forEach(th => {
-  th.style.cursor = "pointer";
-  th.onclick = () => {
-    const k = th.dataset.sort;
-    if (sortKey === k) sortDir *= -1; else { sortKey = k; sortDir = 1; }
-    document.querySelectorAll("th[data-sort]").forEach(x => x.classList.remove("asc","desc"));
-    th.classList.add(sortDir === 1 ? "asc" : "desc");
-    const allRows = [...document.querySelectorAll("#rows tr")];
-    const visible = allRows.filter(r => !r.hidden);
-    const hidden  = allRows.filter(r => r.hidden);
-    visible.sort((a, b) => {
-      const av = parseFloat(a.dataset[k]) || a.dataset[k] || a.children[0].textContent;
-      const bv = parseFloat(b.dataset[k]) || b.dataset[k] || b.children[0].textContent;
-      if (av < bv) return -sortDir;
-      if (av > bv) return  sortDir;
+
+let sortKey = null;
+let sortDirection = 1;
+
+document.querySelectorAll("th[data-sort]").forEach((header) => {
+  header.style.cursor = "pointer";
+
+  header.onclick = () => {
+    const selectedKey = header.dataset.sort;
+
+    if (sortKey === selectedKey) {
+      sortDirection *= -1;
+    } else {
+      sortKey = selectedKey;
+      sortDirection = 1;
+    }
+
+    document
+      .querySelectorAll("th[data-sort]")
+      .forEach((item) => {
+        item.classList.remove("asc", "desc");
+      });
+
+    header.classList.add(
+      sortDirection === 1 ? "asc" : "desc"
+    );
+
+    const rows = [...document.querySelectorAll("#rows tr")];
+    const visibleRows = rows.filter((row) => !row.hidden);
+    const hiddenRows = rows.filter((row) => row.hidden);
+
+    visibleRows.sort((firstRow, secondRow) => {
+      const firstValue =
+        parseFloat(firstRow.dataset[sortKey])
+        || firstRow.dataset[sortKey]
+        || firstRow.children[0].textContent;
+
+      const secondValue =
+        parseFloat(secondRow.dataset[sortKey])
+        || secondRow.dataset[sortKey]
+        || secondRow.children[0].textContent;
+
+      if (firstValue < secondValue) {
+        return -sortDirection;
+      }
+
+      if (firstValue > secondValue) {
+        return sortDirection;
+      }
+
       return 0;
     });
-    const tbody = $("#rows");
-    tbody.innerHTML = "";
-    visible.forEach(r => tbody.appendChild(r));
-    hidden.forEach(r  => tbody.appendChild(r));
+
+    const tableBody = $("#rows");
+    tableBody.innerHTML = "";
+
+    visibleRows.forEach((row) => tableBody.appendChild(row));
+    hiddenRows.forEach((row) => tableBody.appendChild(row));
   };
 });
-async function saveStock(id, stock) {
-  const r = await api(`/api/products/${id}/stock`, { stock: +stock });
-  r.ok ? toast("Stock updated", "success") : toast(r.error, "error");
+
+async function saveStock(productId, stock) {
+  const result = await api(
+    `/api/products/${productId}/stock`,
+    { stock: Number(stock) }
+  );
+
+  if (result.ok) {
+    toast("Stock updated", "success");
+  } else {
+    toast(result.error || "Could not update stock", "error");
+  }
 }
-async function quickRestock(id) {
-  const amount = parseInt(prompt("Restock how many?", "20") || "0", 10);
-  if (!amount) return;
-  const r = await api(`/api/products/${id}/stock`, { stock: amount, restock: true });
-  r.ok ? location.reload() : toast(r.error, "error");
+
+async function quickRestock(productId) {
+  const input = prompt(
+    "How many units should be added to the current stock?",
+    "20"
+  );
+
+  if (input === null) return;
+
+  const amount = Number.parseInt(input, 10);
+
+  if (!Number.isInteger(amount) || amount <= 0) {
+    toast("Enter a positive whole number", "error");
+    return;
+  }
+
+  const result = await api(
+    `/api/products/${productId}/stock`,
+    {
+      stock: amount,
+      restock: true
+    }
+  );
+
+  if (result.ok) {
+    toast("Stock updated", "success");
+    setTimeout(() => location.reload(), 500);
+  } else {
+    toast(result.error || "Could not update stock", "error");
+  }
 }
-async function removeItem(id) {
-  if (!confirm("Remove this item from the menu?")) return;
-  await api(`/api/products/${id}`, {}, "DELETE");
-  toast("Item removed", "success");
-  setTimeout(() => location.reload(), 600);
+
+async function removeItem(productId) {
+  const confirmed = confirm(
+    "Remove this item from the menu?"
+  );
+
+  if (!confirmed) return;
+
+  const result = await api(
+    `/api/products/${productId}`,
+    {},
+    "DELETE"
+  );
+
+  if (result.ok) {
+    toast("Item removed", "success");
+    setTimeout(() => location.reload(), 600);
+  } else {
+    toast(result.error || "Could not remove item", "error");
+  }
 }
 </script>
 {% endblock %}

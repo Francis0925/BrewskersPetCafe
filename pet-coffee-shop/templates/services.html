@@ -5,15 +5,15 @@
   {{ ph.page_header(
        title    = "Services",
        subtitle = "Manage the pet care services your lounge offers.",
-       action   = ('<button class="btn green" onclick="openServiceModal()">+ Add service</button>'
+       action   = ('<button class="btn" onclick="openServiceModal()">+ Add service</button>'
                    if user.role == 'admin' else
                    '<span class="muted-greet">View only</span>')
   ) }}
 
   <div class="grid3">
-    <div class="stat"><small>TOTAL SERVICES</small><div class="n">{{ services|length }}</div><p>Across all categories</p></div>
-    <div class="stat"><small>ACTIVE</small><div class="n">{{ services|selectattr('active', 'equalto', 1)|list|length }}</div><p>Available for booking</p></div>
-    <div class="stat"><small>AVERAGE PRICE</small><div class="n">
+    <div class="stat"><small>Total services</small><div class="n">{{ services|length }}</div><p>Across all categories</p></div>
+    <div class="stat"><small>Active</small><div class="n">{{ services|selectattr('active', 'equalto', 1)|list|length }}</div><p>Available for booking</p></div>
+    <div class="stat"><small>Average price</small><div class="n">
       {% if services %}{{ "₱{:,.0f}".format((services|sum(attribute='price')) / services|length) }}{% else %}₱0{% endif %}
     </div><p>Across the catalog</p></div>
   </div>
@@ -23,14 +23,14 @@
       <div class="service-card {{ 'inactive' if not s.active }}" id="svc{{ s.service_id }}">
         <div class="service-head">
           <h3>{{ s.name }}</h3>
-          {% if s.active %}<span class="badge">Active</span>{% else %}<span class="badge low">Hidden</span>{% endif %}
+          {% if s.active %}<span class="badge">Active</span>{% else %}<span class="badge muted">Hidden</span>{% endif %}
         </div>
-        <div class="service-price serif">₱{{ "{:,.0f}".format(s.price) }}</div>
+        <div class="service-price">₱{{ "{:,.0f}".format(s.price) }}</div>
         <p class="service-dur">{{ s.duration }} minutes</p>
         {% if user.role == 'admin' %}
         <div class="service-actions">
-          <button class="btn ghost small" onclick="openServiceModal({{ s.service_id }}, '{{ s.name|e }}', {{ s.price }}, {{ s.duration }}, {{ s.active }})">Edit</button>
-          <button class="btn {{ 'danger' if s.active else 'green' }} small" onclick="toggleService({{ s.service_id }}, {{ 0 if s.active else 1 }})">
+          <button class="btn ghost small" data-name="{{ s.name }}" onclick="openServiceModal({{ s.service_id }}, this.dataset.name, {{ s.price }}, {{ s.duration }}, {{ s.active }})">Edit</button>
+          <button class="btn {{ 'danger' if s.active else 'ghost' }} small" onclick="toggleService({{ s.service_id }}, {{ 0 if s.active else 1 }})">
             {{ 'Hide' if s.active else 'Show' }}
           </button>
         </div>
@@ -50,10 +50,10 @@
       <input name="price" id="svcPrice" type="number" step="0.01" min="0" placeholder="Price" required />
       <input name="duration" id="svcDuration" type="number" min="1" placeholder="Duration (min)" required />
     </div>
-    <div class="two">
+    <div>
       <label class="check"><input type="checkbox" id="svcActive" checked /><span class="box"><svg viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3"/></svg></span>Active</label>
     </div>
-    <button class="btn green wide" type="submit">Save service</button>
+    <button class="btn wide" type="submit">Save service</button>
   </form>
 </div>
 {% endblock %}

@@ -14,104 +14,122 @@
 >
   <header class="popup-head">
     <div class="popup-id">
-      <div class="avatar lg">{{ user.username[0]|upper }}</div>
+      <div class="avatar lg">
+        {{ user.username[0]|upper }}
+      </div>
+
       <div class="popup-meta">
-        <p id="popupTitle" class="popup-name">{{ user.username }}</p>
-        <small class="popup-email">{{ user.email }}</small>
-        <span class="popup-role">{{ user.role|capitalize }}</span>
+        <p id="popupTitle" class="popup-name">
+          {{ user.username }}
+        </p>
+
+        <small class="popup-email">
+          {{ user.email }}
+        </small>
+
+        <span class="popup-role">
+          {{ user.role|capitalize }}
+        </span>
       </div>
     </div>
-    <a
-      class="popup-full"
-      href="/profile"
-      title="View full profile"
-      aria-label="View full profile"
-      >›</a
-    >
   </header>
+
+  <div class="popup-section-label">
+    My account
+  </div>
 
   <ul class="popup-list">
     <li>
       <a href="/profile">
-        <span class="ic" aria-hidden="true"></span>
-        <span class="grow">Account settings</span>
-        <span class="chev" aria-hidden="true">›</span>
-      </a>
-    </li>
-    <li>
-      <a href="/profile#password">
-        <span class="ic" aria-hidden="true"></span>
-        <span class="grow">Change password</span>
-        <span class="chev" aria-hidden="true">›</span>
-      </a>
-    </li>
-    <li>
-      <button
-        type="button"
-        onclick="toast('Appearance settings coming soon', 'info')"
-      >
-        <span class="ic" aria-hidden="true"></span>
-        <span class="grow">Appearance</span>
-        <span class="chev" aria-hidden="true">›</span>
-      </button>
-    </li>
-    <li>
-      <button
-        type="button"
-        onclick="toast('Notifications coming soon', 'info')"
-      >
-        <span class="ic" aria-hidden="true"></span>
-        <span class="grow">Notifications</span>
-        <span class="chev" aria-hidden="true">›</span>
-      </button>
-    </li>
-    <li>
-      <button type="button" onclick="toast('Help center coming soon', 'info')">
-        <span class="ic" aria-hidden="true"></span>
-        <span class="grow">Help &amp; shortcuts</span>
-        <span class="chev" aria-hidden="true">›</span>
-      </button>
-    </li>
+        <span
+          class="popup-list-icon"
+          aria-hidden="true"
+        >
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 21a8 8 0 0 1 16 0" />
+          </svg>
+        </span>
 
-    {% if user.role == 'admin' %}
-    <li class="popup-sep" aria-hidden="true"></li>
-    <li>
-      <a href="/admin/staff">
-        <span class="ic" aria-hidden="true"></span>
-        <span class="grow">Admin tools</span>
-        <span class="chev" aria-hidden="true">›</span>
+        <span class="grow">
+          <strong>Profile &amp; security</strong>
+          <small>Account details and password</small>
+        </span>
+
+        <span
+          class="chev"
+          aria-hidden="true"
+        >
+          ›
+        </span>
       </a>
     </li>
-    {% endif %}
+  </ul>
 
-    <li class="popup-sep" aria-hidden="true"></li>
+  <li
+    class="popup-sep"
+    aria-hidden="true"
+  ></li>
+
+  <ul class="popup-list">
     <li>
       <a class="danger" href="/logout">
-        <span class="ic" aria-hidden="true"></span>
-        <span class="grow">Log out</span>
+        <span
+          class="popup-list-icon"
+          aria-hidden="true"
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M10 5H5v14h5" />
+            <path d="M14 8l4 4-4 4M8 12h10" />
+          </svg>
+        </span>
+
+        <span class="grow">
+          <strong>Log out</strong>
+          <small>End this staff session</small>
+        </span>
       </a>
     </li>
   </ul>
 </aside>
 
 <script>
-  const popup = document.getElementById("profilePopup");
-  const popupBackdrop = document.getElementById("popupBackdrop");
+  const profilePopup =
+    document.getElementById("profilePopup");
+
+  const popupBackdrop =
+    document.getElementById("popupBackdrop");
+
+  let popupCloseTimer = null;
 
   function openProfilePopup() {
-    popup.hidden = false;
+    clearTimeout(popupCloseTimer);
+
+    profilePopup.hidden = false;
     popupBackdrop.hidden = false;
-    requestAnimationFrame(() => popup.classList.add("open"));
+
+    requestAnimationFrame(() => {
+      profilePopup.classList.add("open");
+    });
   }
+
   function closeProfilePopup() {
-    popup.classList.remove("open");
-    setTimeout(() => {
-      popup.hidden = true;
+    profilePopup.classList.remove("open");
+
+    clearTimeout(popupCloseTimer);
+
+    popupCloseTimer = setTimeout(() => {
+      profilePopup.hidden = true;
       popupBackdrop.hidden = true;
     }, 220);
   }
 
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !popup.hidden) closeProfilePopup();
+  document.addEventListener("keydown", (event) => {
+    if (
+      event.key === "Escape" &&
+      !profilePopup.hidden
+    ) {
+      closeProfilePopup();
+    }
   });
 </script>

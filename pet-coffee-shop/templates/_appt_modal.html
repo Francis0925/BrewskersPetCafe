@@ -28,25 +28,17 @@
     </div>
 
     <div class="filepick">
-      <label class="btn ghost small" for="photo_file">📷 Choose photo</label>
+      <label class="btn ghost small" for="photo_file">Choose photo</label>
       <span id="photoName">No file chosen</span>
       <img id="photoPreview" alt="" hidden>
       <input type="file" id="photo_file" name="photo_file" accept="image/*" hidden>
     </div>
 
     <textarea name="notes" rows="2" placeholder="Guest notes" id="notes"></textarea>
-    <button class="btn green wide">Save appointment</button>
+    <button class="btn wide">Save appointment</button>
   </form>
 </div>
 
-<style>
-  #modal textarea { resize: none; overflow-y: hidden; max-height: 200px; }
-  #modal .filepick { display: flex; align-items: center; gap: 10px; }
-  #modal .filepick label { margin: 0; cursor: pointer; }
-  #modal .filepick span { flex: 1; min-width: 0; font-size: .85rem; color: var(--muted);
-                          white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #modal .filepick img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; }
-</style>
 
 <script>
 document.querySelectorAll("#modal [data-nodigits]").forEach(el =>

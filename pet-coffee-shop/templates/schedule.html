@@ -5,31 +5,31 @@
   {{ ph.page_header(
        title    = "Schedule",
        subtitle = "See the week at a glance and jump between days.",
-       action   = '<div class="actions"><div class="seg"><a href="/appointments">Appointments</a><a class="on" href="/schedule">Schedule</a></div><button class="btn green" onclick="openModal()">+ Set appointment</button></div>'
+       action   = '<div class="actions"><div class="seg"><a href="/appointments">Appointments</a><a class="on" href="/schedule">Schedule</a></div><button class="btn" onclick="openModal()">+ Set appointment</button></div>'
   ) }}
 
   <div class="grid3 mini">
-    <div class="stat"><small>APPOINTMENTS THIS MONTH</small><div class="n">{{ appointments|length }}</div><p>All non-cancelled bookings</p></div>
-    <div class="stat"><small>SELECTED DAY</small><div class="n small" id="busyStat">—</div><p>Updates as you click a date</p></div>
-    <div class="stat"><small>QUICK ACTIONS</small><div class="row-actions">
+    <div class="stat"><small>Appointments this month</small><div class="n">{{ appointments|length }}</div><p>All non-cancelled bookings</p></div>
+    <div class="stat"><small>Selected day</small><div class="n small" id="busyStat">—</div><p>Updates as you click a date</p></div>
+    <div class="stat"><small>Quick actions</small><div class="row-actions">
       <button class="btn ghost small" onclick="jumpToday()">Jump to today</button>
       <button class="btn small" onclick="openModal()">+ New booking</button>
     </div></div>
   </div>
 
-  <div class="cols side" style="grid-template-columns:minmax(0,1fr) 340px">
+  <div class="cols cal">
     <div class="panel">
       <div class="calhead">
         <button onclick="moveMonth(-1)">‹</button>
-        <h2 id="month" class="serif" style="font-size:1.6rem"></h2>
+        <h2 id="month"></h2>
         <button onclick="moveMonth(1)">›</button>
       </div>
       <div class="cal" id="cal"></div>
     </div>
     <div class="panel">
-      <small class="eyebrow">DAILY SCHEDULE</small>
-      <h2 id="dayTitle" style="font-size:1.5rem;margin:4px 0"></h2>
-      <p id="dayCount" style="margin:0 0 14px;color:var(--muted);font-size:.85rem"></p>
+      <small class="eyebrow">Daily schedule</small>
+      <h2 id="dayTitle" style="margin:4px 0 2px"></h2>
+      <p id="dayCount" style="margin:0 0 16px;color:var(--muted);font-size:.85rem"></p>
       <div class="list" id="dayList"></div>
     </div>
   </div>
@@ -69,9 +69,9 @@ function draw() {
   $("#busyStat").textContent = list.length;
   $("#dayList").innerHTML = list.map(a => `
     <a class="item" href="/appointments">
-      <div class="pic c${a.appointment_id % 4}">${a.pet_type === "Cat" ? "🐱" : "🐶"}</div>
-      <div class="grow"><h4>${a.pet_name}</h4><p>${a.service_name} · ${a.owner_name}</p></div>
-      <div class="time">${a.appt_time}</div>
+      <div class="pic c${a.appointment_id % 4}">${esc(a.pet_name[0].toUpperCase())}</div>
+      <div class="grow"><h4>${esc(a.pet_name)}</h4><p>${esc(a.service_name)} · ${esc(a.owner_name)}</p></div>
+      <div class="time">${esc(a.appt_time)}</div>
     </a>`).join("") || '<div class="empty">Nothing booked this day.</div>';
 }
 draw();

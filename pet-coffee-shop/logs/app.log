@@ -1,0 +1,888 @@
+2026-11-03 03:01:22,402 WARNING CSRF check failed for /api/products/2/stock
+2026-11-03 03:01:28,345 WARNING CSRF check failed for /api/products/2/stock
+2026-11-03 03:01:29,793 WARNING CSRF check failed for /api/products/4/stock
+2026-11-03 03:01:35,233 WARNING CSRF check failed for /api/products/2/stock
+2026-11-03 03:01:36,849 WARNING CSRF check failed for /api/products/4/stock
+2026-11-03 03:01:38,618 WARNING CSRF check failed for /api/products/3/stock
+2026-11-03 03:01:40,057 WARNING CSRF check failed for /api/products/5/stock
+2026-11-03 03:01:45,626 WARNING CSRF check failed for /api/products/2/stock
+2026-11-03 03:01:45,793 WARNING CSRF check failed for /api/products/2/stock
+2026-11-03 03:01:45,945 WARNING CSRF check failed for /api/products/2/stock
+2026-11-03 03:01:46,121 WARNING CSRF check failed for /api/products/2/stock
+2026-11-03 03:01:46,321 WARNING CSRF check failed for /api/products/2/stock
+2026-11-03 03:01:46,538 WARNING CSRF check failed for /api/products/2/stock
+2026-11-03 03:02:13,530 WARNING CSRF check failed for /api/orders
+2026-11-03 03:02:14,729 WARNING CSRF check failed for /api/orders
+2026-11-03 03:02:14,913 WARNING CSRF check failed for /api/orders
+2026-11-03 03:02:15,106 WARNING CSRF check failed for /api/orders
+2026-11-03 03:02:15,307 WARNING CSRF check failed for /api/orders
+2026-11-03 03:02:15,793 WARNING CSRF check failed for /api/orders
+2026-11-03 03:02:35,747 WARNING CSRF check failed for /api/orders
+2026-11-03 03:09:01,211 WARNING CSRF check failed for /api/orders
+2026-11-03 03:09:30,091 WARNING CSRF check failed for /api/products
+2026-11-03 03:22:50,780 WARNING CSRF check failed for /api/products
+2026-11-03 03:25:17,684 WARNING CSRF check failed for /api/products/2/stock
+2026-11-03 03:33:57,188 WARNING CSRF check failed for /api/orders
+2026-11-03 03:33:59,524 WARNING CSRF check failed for /api/orders
+2026-11-03 03:34:45,680 WARNING CSRF check failed for /api/appointments
+2026-11-03 03:34:47,165 WARNING CSRF check failed for /api/appointments
+2026-11-03 03:34:47,349 WARNING CSRF check failed for /api/appointments
+2026-11-03 03:34:47,581 WARNING CSRF check failed for /api/appointments
+2026-11-03 03:36:14,469 WARNING CSRF check failed for /api/products
+2026-11-03 03:39:19,173 WARNING CSRF check failed for /api/orders
+2026-11-03 03:39:20,484 WARNING CSRF check failed for /api/orders
+2026-11-03 03:39:20,764 WARNING CSRF check failed for /api/orders
+2026-11-03 03:39:20,932 WARNING CSRF check failed for /api/orders
+2026-11-03 03:39:21,108 WARNING CSRF check failed for /api/orders
+2026-11-03 03:39:21,276 WARNING CSRF check failed for /api/orders
+2026-11-03 03:39:21,436 WARNING CSRF check failed for /api/orders
+2026-11-03 03:39:21,588 WARNING CSRF check failed for /api/orders
+2026-11-03 03:39:21,756 WARNING CSRF check failed for /api/orders
+2026-11-03 03:39:21,925 WARNING CSRF check failed for /api/orders
+2026-11-03 03:39:33,549 WARNING CSRF check failed for /api/orders
+2026-11-03 03:40:08,118 WARNING CSRF check failed for /api/products
+2026-11-03 03:43:00,295 ERROR Unhandled error on POST /api/products
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 219, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 1171, in add_product
+    run(
+    ~~~^
+        "INSERT INTO products "
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+        ),
+        ^^
+    )
+    ^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 120, in run
+    cursor.execute(sql, args)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^
+sqlite3.OperationalError: table products has no column named emoji
+2026-11-03 03:43:03,607 ERROR Unhandled error on POST /api/products
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 219, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 1171, in add_product
+    run(
+    ~~~^
+        "INSERT INTO products "
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+        ),
+        ^^
+    )
+    ^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 120, in run
+    cursor.execute(sql, args)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^
+sqlite3.OperationalError: table products has no column named emoji
+2026-11-03 03:43:16,159 ERROR Unhandled error on POST /api/products
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 219, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 1171, in add_product
+    run(
+    ~~~^
+        "INSERT INTO products "
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+        ),
+        ^^
+    )
+    ^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 120, in run
+    cursor.execute(sql, args)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^
+sqlite3.OperationalError: table products has no column named emoji
+2026-11-03 03:47:41,711 ERROR Unhandled error on POST /api/products
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 219, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 1171, in add_product
+    run(
+    ~~~^
+        "INSERT INTO products "
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+        ),
+        ^^
+    )
+    ^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 120, in run
+    cursor.execute(sql, args)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^
+sqlite3.OperationalError: table products has no column named emoji
+2026-11-03 03:53:08,736 ERROR Unhandled error on POST /api/products
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 219, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 1171, in add_product
+    run(
+    ~~~^
+        "INSERT INTO products "
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+        ),
+        ^^
+    )
+    ^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 120, in run
+    cursor.execute(sql, args)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^
+sqlite3.OperationalError: table products has no column named emoji
+2026-11-03 04:02:38,879 ERROR Unhandled error on GET /admin/data
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 239, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: admin_data() takes 0 positional arguments but 2 were given
+2026-11-03 04:02:39,541 ERROR Unhandled error on GET /admin/data
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 239, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: admin_data() takes 0 positional arguments but 2 were given
+2026-11-03 04:02:42,707 ERROR Unhandled error on GET /admin/data
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 239, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: admin_data() takes 0 positional arguments but 2 were given
+2026-11-03 04:04:30,042 ERROR Unhandled error on GET /admin/data
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 239, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: admin_data() takes 0 positional arguments but 2 were given
+2026-11-03 04:05:46,443 ERROR Unhandled error on GET /admin/data
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 239, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: admin_data() takes 1 positional argument but 2 were given
+2026-11-03 04:07:21,676 ERROR Unhandled error on GET /admin/data
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 1587, in admin_data
+    return render_template(
+        "data_tools..html",
+    ...<5 lines>...
+        }
+    )
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+                                 ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 66, in get_source
+    return self._get_source_fast(environment, template)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 100, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: data_tools..html
+2026-11-03 04:07:22,548 ERROR Unhandled error on GET /admin/data
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 1587, in admin_data
+    return render_template(
+        "data_tools..html",
+    ...<5 lines>...
+        }
+    )
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+                                 ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 66, in get_source
+    return self._get_source_fast(environment, template)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 100, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: data_tools..html
+2026-11-03 04:07:30,545 ERROR Unhandled error on GET /admin/data
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 1587, in admin_data
+    return render_template(
+        "data_tools..html",
+    ...<5 lines>...
+        }
+    )
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+                                 ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 66, in get_source
+    return self._get_source_fast(environment, template)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 100, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: data_tools..html
+2026-11-03 04:08:14,598 ERROR Unhandled error on GET /admin/data
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 1587, in admin_data
+    return render_template(
+        "data_tools..html",
+    ...<5 lines>...
+        }
+    )
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+                                 ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 66, in get_source
+    return self._get_source_fast(environment, template)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 100, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: data_tools..html
+2026-11-03 04:09:55,524 ERROR Unhandled error on GET /admin/data
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 1587, in admin_data
+    return render_template(
+        "data_tools.html",
+    ...<5 lines>...
+        }
+    )
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\templates\data_tools.html", line 2, in top-level template code
+    {% import "_partials/page_header.html" as ph %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\templates\base.html", line 76, in top-level template code
+    nav_link(
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\runtime.py", line 784, in _invoke
+    rv = self._func(*arguments)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\templates\base.html", line 47, in template
+    {% if user_has(user, permission) %}
+    ^^^^^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 80, in <lambda>
+    "*" in PERMISSIONS.get(user.get("role", ""), set())
+                           ^^^^^^^^
+jinja2.exceptions.UndefinedError: 'user' is undefined
+2026-11-03 04:10:01,605 ERROR Unhandled error on GET /admin/data
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 1587, in admin_data
+    return render_template(
+        "data_tools.html",
+    ...<5 lines>...
+        }
+    )
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\templates\data_tools.html", line 2, in top-level template code
+    {% import "_partials/page_header.html" as ph %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\templates\base.html", line 76, in top-level template code
+    nav_link(
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\runtime.py", line 784, in _invoke
+    rv = self._func(*arguments)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\templates\base.html", line 47, in template
+    {% if user_has(user, permission) %}
+    ^^^^^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 80, in <lambda>
+    "*" in PERMISSIONS.get(user.get("role", ""), set())
+                           ^^^^^^^^
+jinja2.exceptions.UndefinedError: 'user' is undefined
+2026-11-03 04:10:11,437 ERROR Unhandled error on GET /admin/data
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 1587, in admin_data
+    return render_template(
+        "data_tools.html",
+    ...<5 lines>...
+        }
+    )
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 151, in render_template
+    return _render(app, template, context)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 132, in _render
+    rv = template.render(context)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\templates\data_tools.html", line 2, in top-level template code
+    {% import "_partials/page_header.html" as ph %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\templates\base.html", line 76, in top-level template code
+    nav_link(
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\runtime.py", line 784, in _invoke
+    rv = self._func(*arguments)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\templates\base.html", line 47, in template
+    {% if user_has(user, permission) %}
+    ^^^^^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 80, in <lambda>
+    "*" in PERMISSIONS.get(user.get("role", ""), set())
+                           ^^^^^^^^
+jinja2.exceptions.UndefinedError: 'user' is undefined
+2026-11-03 04:43:18,819 ERROR Unhandled error on POST /api/profile/change-password
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: api_change_password() takes 0 positional arguments but 1 was given
+2026-11-03 04:43:20,147 ERROR Unhandled error on POST /api/profile/change-password
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: api_change_password() takes 0 positional arguments but 1 was given
+2026-11-03 04:43:20,314 ERROR Unhandled error on POST /api/profile/change-password
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: api_change_password() takes 0 positional arguments but 1 was given
+2026-11-03 04:43:20,474 ERROR Unhandled error on POST /api/profile/change-password
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: api_change_password() takes 0 positional arguments but 1 was given
+2026-11-03 04:43:20,642 ERROR Unhandled error on POST /api/profile/change-password
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: api_change_password() takes 0 positional arguments but 1 was given
+2026-11-03 04:43:20,794 ERROR Unhandled error on POST /api/profile/change-password
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: api_change_password() takes 0 positional arguments but 1 was given
+2026-11-03 04:43:20,938 ERROR Unhandled error on POST /api/profile/change-password
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: api_change_password() takes 0 positional arguments but 1 was given
+2026-11-03 04:43:21,090 ERROR Unhandled error on POST /api/profile/change-password
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: api_change_password() takes 0 positional arguments but 1 was given
+2026-11-03 04:43:21,250 ERROR Unhandled error on POST /api/profile/change-password
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: api_change_password() takes 0 positional arguments but 1 was given
+2026-11-03 18:17:23,711 ERROR Unhandled error on POST /api/profile/change-password
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: api_change_password() takes 0 positional arguments but 1 was given
+2026-11-03 18:17:32,883 ERROR Unhandled error on POST /api/profile/change-password
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 181, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: api_change_password() takes 0 positional arguments but 1 was given
+2026-11-04 04:11:50,903 ERROR Unhandled error on POST /api/login
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\auth.py", line 512, in api_login
+    token, user, error = login(
+                         ~~~~~^
+        username,
+        ^^^^^^^^^
+        password,
+        ^^^^^^^^^
+        remember,
+        ^^^^^^^^^
+    )
+    ^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\auth.py", line 285, in login
+    cursor.execute(
+    ~~~~~~~~~~~~~~^
+        "SELECT * FROM users WHERE username = ?",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (username,),
+        ^^^^^^^^^^^^
+    )
+    ^
+sqlite3.OperationalError: no such table: users
+2026-11-04 04:12:15,473 ERROR Unhandled error on POST /api/login
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\auth.py", line 512, in api_login
+    token, user, error = login(
+                         ~~~~~^
+        username,
+        ^^^^^^^^^
+        password,
+        ^^^^^^^^^
+        remember,
+        ^^^^^^^^^
+    )
+    ^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\auth.py", line 285, in login
+    cursor.execute(
+    ~~~~~~~~~~~~~~^
+        "SELECT * FROM users WHERE username = ?",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (username,),
+        ^^^^^^^^^^^^
+    )
+    ^
+sqlite3.OperationalError: no such table: users
+2026-11-04 04:12:16,649 ERROR Unhandled error on POST /api/login
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\auth.py", line 512, in api_login
+    token, user, error = login(
+                         ~~~~~^
+        username,
+        ^^^^^^^^^
+        password,
+        ^^^^^^^^^
+        remember,
+        ^^^^^^^^^
+    )
+    ^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\auth.py", line 285, in login
+    cursor.execute(
+    ~~~~~~~~~~~~~~^
+        "SELECT * FROM users WHERE username = ?",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        (username,),
+        ^^^^^^^^^^^^
+    )
+    ^
+sqlite3.OperationalError: no such table: users
+2026-11-04 04:30:02,896 ERROR Unhandled error on GET /profile
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 383, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 650, in profile_page
+    return render_template(
+        "profile.html",
+    ...<2 lines>...
+        active="profile",
+    )
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\templates\profile.html", line 8, in template
+    subtitle = user.email ~ " · " ~ user.role|capitalize,
+    ^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.TemplateSyntaxError: expected token ',', got 'subtitle'
+2026-11-04 04:30:11,172 ERROR Unhandled error on GET /profile
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 383, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 650, in profile_page
+    return render_template(
+        "profile.html",
+    ...<2 lines>...
+        active="profile",
+    )
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\templates\profile.html", line 8, in template
+    subtitle = user.email ~ " · " ~ user.role|capitalize,
+    ^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.TemplateSyntaxError: expected token ',', got 'subtitle'
+2026-11-04 04:30:36,533 ERROR Unhandled error on GET /profile
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 383, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 650, in profile_page
+    return render_template(
+        "profile.html",
+    ...<2 lines>...
+        active="profile",
+    )
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\templates\profile.html", line 8, in template
+    subtitle = user.email ~ " · " ~ user.role|capitalize,
+    ^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.TemplateSyntaxError: expected token ',', got 'subtitle'
+2026-11-04 04:33:59,661 ERROR Unhandled error on GET /profile
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 383, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 650, in profile_page
+    return render_template(
+        "profile.html",
+    ...<2 lines>...
+        active="profile",
+    )
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\templates\profile.html", line 8, in template
+    subtitle = user.email ~ " · " ~ user.role|capitalize,
+    ^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.TemplateSyntaxError: expected token ',', got 'subtitle'
+2026-11-04 04:34:15,548 ERROR Unhandled error on GET /profile
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 383, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 650, in profile_page
+    return render_template(
+        "profile.html",
+    ...<2 lines>...
+        active="profile",
+    )
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\templates\profile.html", line 8, in template
+    subtitle = user.email ~ " · " ~ user.role|capitalize,
+    ^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.TemplateSyntaxError: expected token ',', got 'subtitle'
+2026-11-04 04:34:24,577 ERROR Unhandled error on GET /profile
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 383, in wrapper
+    return view(user, *args, **kwargs)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 650, in profile_page
+    return render_template(
+        "profile.html",
+    ...<2 lines>...
+        active="profile",
+    )
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\templating.py", line 150, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\templates\profile.html", line 8, in template
+    subtitle = user.email ~ " · " ~ user.role|capitalize,
+    ^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.TemplateSyntaxError: expected token ',', got 'subtitle'
+2026-11-04 04:41:13,261 ERROR Unhandled error on GET /profile
+Traceback (most recent call last):
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\PC Admin\AppData\Local\Programs\Python\Python315\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "c:\Users\PC Admin\Downloads\LSPU FILES\CLASS FILES\CS2A\Visual Studio -CS2A\CS2A_FINAL_PROJECT\pet-coffee-shop\app.py", line 383, in wrapper
+    return view(user, *args, **kwargs)
+TypeError: profile_page() takes 0 positional arguments but 1 was given

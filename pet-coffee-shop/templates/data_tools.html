@@ -1,0 +1,554 @@
+{% extends "base.html" %}
+{% import "_partials/page_header.html" as ph %}
+
+{% block page %}
+<main>
+  {{ ph.page_header(
+       title    = "Import & export",
+       subtitle = "Move Brewskers records through CSV files safely.",
+       action   = '<a class="link" href="/admin">‹ Back to administration</a>'
+  ) }}
+
+  <div class="data-toolbar">
+    <div>
+      <span class="eyebrow">Data tools</span>
+      <h2>Backup, restore, and transfer records</h2>
+      <p>
+        Export current products and services, or validate a CSV before
+        importing it into the database.
+      </p>
+    </div>
+
+    <span class="badge muted">Administrator only</span>
+  </div>
+
+  <div class="cols even data-tools-grid">
+    <section class="panel data-panel">
+      <div class="panel-head">
+        <div>
+          <span class="eyebrow">Export</span>
+          <h2>Download records</h2>
+        </div>
+
+        <span class="data-panel__hint">CSV format</span>
+      </div>
+
+      <p class="data-panel__intro">
+        Download a copy of your current records for backup or editing.
+      </p>
+
+      <div class="export-list">
+        {% for export_type, export_label in exports.items() %}
+          <div class="export-row">
+            <div class="export-row__icon" aria-hidden="true">
+              {% if export_type == "products" %}
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 7h16v13H4z" />
+                  <path d="M8 7V4h8v3M4 12h16M10 12v2h4v-2" />
+                </svg>
+              {% else %}
+                <svg viewBox="0 0 24 24">
+                  <path d="M8 3h8l4 4v14H4V3z" />
+                  <path d="M8 3v5h8V3M8 12h8M8 16h5" />
+                </svg>
+              {% endif %}
+            </div>
+
+            <div class="export-row__content">
+              <h3>{{ export_label }}</h3>
+              <p>
+                {% if export_type == "products" %}
+                  Product names, categories, prices, and stock.
+                {% else %}
+                  Service names, prices, durations, and availability.
+                {% endif %}
+              </p>
+            </div>
+
+            <a
+              class="btn ghost small"
+              href="/api/admin/export/{{ export_type }}"
+            >
+              <svg
+                class="button-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="M12 3v12M7 10l5 5 5-5" />
+                <path d="M5 20h14" />
+              </svg>
+
+              Download
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="safe-note">
+        <div class="safe-note__icon" aria-hidden="true">✓</div>
+
+        <div>
+          <h3>Safe exports</h3>
+          <p>
+            Password hashes, session tokens, remember tokens, and
+            password-reset codes are never included.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel data-panel">
+      <div class="panel-head">
+        <div>
+          <span class="eyebrow">Import</span>
+          <h2>Add records from CSV</h2>
+        </div>
+
+        <span class="data-panel__hint">Preview first</span>
+      </div>
+
+      <p class="data-panel__intro">
+        Every row is validated before anything is written to the database.
+      </p>
+
+      <form
+        id="import-form"
+        class="import-form"
+        onsubmit="previewImport(event)"
+      >
+        <div class="form-group">
+          <label for="import-type">Record type</label>
+
+          <select id="import-type" name="entity_type" required>
+            <option value="products">Products</option>
+            <option value="services">Services</option>
+          </select>
+
+          <small class="field-help">
+            Choose the type that matches the CSV columns.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="import-file">CSV file</label>
+
+          <div class="file-picker">
+            <input
+              id="import-file"
+              name="file"
+              type="file"
+              accept=".csv,text/csv"
+              required
+            />
+
+            <label class="file-picker__button" for="import-file">
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="M12 16V4M7 9l5-5 5 5" />
+                <path d="M5 20h14" />
+              </svg>
+
+              Choose file
+            </label>
+
+            <div class="file-picker__details">
+              <strong id="selected-file-name">No file selected</strong>
+              <small id="selected-file-size">CSV files only</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="import-actions">
+          <button
+            class="btn wide"
+            id="preview-import-button"
+            type="submit"
+          >
+            <span class="button-label">Preview import</span>
+            <span class="button-loading">Checking file…</span>
+          </button>
+        </div>
+      </form>
+
+      <div
+        id="import-preview"
+        class="import-preview"
+        hidden
+      >
+        <div class="preview-summary">
+          <div class="preview-summary__icon" aria-hidden="true">✓</div>
+
+          <div class="preview-summary__content">
+            <p class="preview-summary__title" id="preview-title"></p>
+            <p id="preview-summary"></p>
+          </div>
+        </div>
+
+        <div
+          id="import-errors"
+          class="import-errors"
+          hidden
+        ></div>
+
+        <button
+          class="btn wide"
+          id="confirm-import-button"
+          type="button"
+          onclick="confirmImport()"
+          hidden
+        >
+          Confirm import
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <div class="csv-format-note">
+    <strong>CSV format</strong>
+
+    <span>
+      Products:
+      <code>name, category, price, stock</code>
+    </span>
+
+    <span>
+      Services:
+      <code>name, price, duration, active</code>
+    </span>
+  </div>
+</main>
+{% endblock %}
+
+{% block script %}
+<script>
+let pendingImportFile = null;
+
+function escapeHtml(value) {
+  const element = document.createElement("span");
+  element.textContent = String(value ?? "");
+  return element.innerHTML;
+}
+
+function csrfToken() {
+  return (
+    document.querySelector('meta[name="csrf-token"]')?.content ||
+    window.CSRF_TOKEN ||
+    ""
+  );
+}
+
+async function postForm(url, formData) {
+  const token = csrfToken();
+  const headers = {};
+
+  if (token) {
+    headers["X-CSRF-Token"] = token;
+  }
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers,
+    body: formData
+  });
+
+  let result;
+
+  try {
+    result = await response.json();
+  } catch (error) {
+    console.error("Invalid import response", response.status);
+
+    return {
+      ok: false,
+      error: "The server returned an invalid response."
+    };
+  }
+
+  if (response.status === 401) {
+    location.href = "/";
+
+    return {
+      ok: false,
+      error: "Please log in again"
+    };
+  }
+
+  if (response.status === 403) {
+    return {
+      ok: false,
+      error:
+        result.error ||
+        "Your session expired. Refresh the page and try again."
+    };
+  }
+
+  if (response.status === 429) {
+    return {
+      ok: false,
+      error: "Too many attempts. Please wait and try again."
+    };
+  }
+
+  if (!response.ok && result.ok === undefined) {
+    result.ok = false;
+
+    result.error =
+      result.error ||
+      `Import failed (${response.status})`;
+  }
+
+  return result;
+}
+
+function resetImportPreview() {
+  const previewPanel =
+    document.getElementById("import-preview");
+
+  const errorPanel =
+    document.getElementById("import-errors");
+
+  const confirmButton =
+    document.getElementById("confirm-import-button");
+
+  previewPanel.hidden = true;
+  errorPanel.hidden = true;
+  errorPanel.innerHTML = "";
+  confirmButton.hidden = true;
+
+  pendingImportFile = null;
+}
+
+const importFileInput =
+  document.getElementById("import-file");
+
+const filePicker =
+  importFileInput.closest(".file-picker");
+
+const selectedFileName =
+  document.getElementById("selected-file-name");
+
+const selectedFileSize =
+  document.getElementById("selected-file-size");
+
+importFileInput.addEventListener("change", () => {
+  const file = importFileInput.files[0];
+
+  filePicker.classList.toggle(
+    "has-file",
+    Boolean(file)
+  );
+
+  if (!file) {
+    selectedFileName.textContent =
+      "No file selected";
+
+    selectedFileSize.textContent =
+      "CSV files only";
+  } else {
+    selectedFileName.textContent =
+      file.name;
+
+    selectedFileSize.textContent =
+      `${file.size.toLocaleString()} bytes`;
+  }
+
+  resetImportPreview();
+});
+
+async function previewImport(event) {
+  event.preventDefault();
+
+  const form = event.target;
+  const selectedFile = importFileInput.files[0];
+
+  if (!selectedFile) {
+    toast("Choose a CSV file", "error");
+    return;
+  }
+
+  if (!selectedFile.name.toLowerCase().endsWith(".csv")) {
+    toast("Choose a CSV file", "error");
+    return;
+  }
+
+  const previewButton =
+    document.getElementById(
+      "preview-import-button"
+    );
+
+  previewButton.disabled = true;
+  previewButton.classList.add("is-loading");
+
+  try {
+    const formData = new FormData();
+
+    formData.append(
+      "entity_type",
+      form.elements.entity_type.value
+    );
+
+    formData.append(
+      "file",
+      selectedFile
+    );
+
+    const result = await postForm(
+      "/api/admin/import/preview",
+      formData
+    );
+
+    if (!result.ok) {
+      toast(
+        result.error || "Could not read the file",
+        "error"
+      );
+
+      return;
+    }
+
+    pendingImportFile = selectedFile;
+
+    const previewPanel =
+      document.getElementById(
+        "import-preview"
+      );
+
+    const errorPanel =
+      document.getElementById(
+        "import-errors"
+      );
+
+    const confirmButton =
+      document.getElementById(
+        "confirm-import-button"
+      );
+
+    previewPanel.hidden = false;
+
+    document.getElementById(
+      "preview-title"
+    ).textContent =
+      result.entity_type === "products"
+        ? "Product import preview"
+        : "Service import preview";
+
+    document.getElementById(
+      "preview-summary"
+    ).textContent =
+      `${result.valid_count} valid row${
+        result.valid_count === 1 ? "" : "s"
+      }, ${result.error_count} invalid row${
+        result.error_count === 1 ? "" : "s"
+      }.`;
+
+    if (result.error_count) {
+      errorPanel.hidden = false;
+
+      errorPanel.innerHTML = `
+        <div class="import-error-list">
+          ${result.errors.map((error) => `
+            <div class="import-error-row">
+              <b>Row ${error.row}:</b>
+              ${escapeHtml(error.message)}
+            </div>
+          `).join("")}
+        </div>
+      `;
+
+      confirmButton.hidden = true;
+    } else {
+      errorPanel.hidden = true;
+      errorPanel.innerHTML = "";
+      confirmButton.hidden = false;
+    }
+  } catch (error) {
+    console.error(error);
+
+    toast(
+      "Could not reach the server",
+      "error"
+    );
+  } finally {
+    previewButton.disabled = false;
+    previewButton.classList.remove(
+      "is-loading"
+    );
+  }
+}
+
+async function confirmImport() {
+  if (!pendingImportFile) {
+    toast(
+      "Preview the file before importing",
+      "error"
+    );
+
+    return;
+  }
+
+  const entityType =
+    document.getElementById(
+      "import-type"
+    ).value;
+
+  const confirmButton =
+    document.getElementById(
+      "confirm-import-button"
+    );
+
+  confirmButton.disabled = true;
+  confirmButton.textContent = "Importing…";
+
+  try {
+    const formData = new FormData();
+
+    formData.append(
+      "entity_type",
+      entityType
+    );
+
+    formData.append(
+      "file",
+      pendingImportFile
+    );
+
+    const result = await postForm(
+      "/api/admin/import/confirm",
+      formData
+    );
+
+    if (!result.ok) {
+      toast(
+        result.error || "Could not import the file",
+        "error"
+      );
+
+      return;
+    }
+
+    toast(
+      `Imported ${result.imported_count} record${
+        result.imported_count === 1 ? "" : "s"
+      }`,
+      "success"
+    );
+
+    setTimeout(() => {
+      location.reload();
+    }, 700);
+  } catch (error) {
+    console.error(error);
+
+    toast(
+      "Could not reach the server",
+      "error"
+    );
+  } finally {
+    confirmButton.disabled = false;
+    confirmButton.textContent = "Confirm import";
+  }
+}
+</script>
+{% endblock %}

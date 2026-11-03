@@ -1,408 +1,933 @@
-{% extends "base.html" %} {% import "_partials/page_header.html" as ph %} {%
-block page %}
+{% extends "base.html" %}
+{% import "_partials/page_header.html" as ph %}
+
+{% block page %}
 <main>
-  {{ ph.page_header( title = "Point of sale", subtitle = "Ring up orders and
-  keep the line moving.", action = '<span class="muted-greet"
-    >Good day, <b>' ~ user.username ~ '</b></span
-  >' ) }}
+  {{ ph.page_header(
+       title    = "Point of sale",
+       subtitle = "Ring up orders and keep the line moving.",
+       action   = (
+         '<span class="muted-greet">Good day, <b>'
+         ~ user.username
+         ~ '</b></span>'
+       )
+  ) }}
 
   <div class="pos-toolbar">
     <input
       class="searchbar"
       id="search"
-      placeholder="Search menu items..."
+      placeholder="Search by product name or number..."
       autocomplete="off"
+      inputmode="search"
     />
+
+    <span class="muted-greet">
+      Select a product to add it to the order
+    </span>
   </div>
-  <div class="chips" id="chips"></div>
-  <div class="products" id="grid"></div>
+
+  <div class="chips" id="category-filters"></div>
+
+  <div class="products" id="product-grid"></div>
 </main>
 
-<aside class="order">
+<aside class="order" aria-label="Current order">
   <div class="order-head">
     <h2 class="serif">Current order</h2>
+
     <div class="order-actions">
       <button
         class="link"
-        id="holdBtn"
-        onclick="holdOrder()"
-        title="Hold the current order to take the next customer"
+        id="hold-order-button"
+        type="button"
+        title="Hold this order and start another"
       >
         Hold
       </button>
-      <a
-        href="#"
+
+      <button
         class="link danger"
-        onclick="
-          clearCart();
-          return false;
-        "
-        >Clear</a
+        id="clear-order-button"
+        type="button"
       >
+        Clear
+      </button>
     </div>
   </div>
 
-  <div class="lines" id="lines"></div>
+  <div class="lines" id="order-lines"></div>
 
-  <input id="customer" placeholder="Customer name (optional)" maxlength="30" />
-  <select id="method" onchange="toggleCash()">
+  <label for="customer-name">Customer name</label>
+
+  <input
+    id="customer-name"
+    placeholder="Optional — defaults to Walk-in"
+    maxlength="30"
+    autocomplete="off"
+  />
+
+  <label for="payment-method">Payment method</label>
+
+  <select id="payment-method" onchange="toggleCashFields()">
     <option value="cash">Cash</option>
     <option value="gcash">GCash</option>
     <option value="card">Card</option>
   </select>
 
-  <div class="cash" id="cashBox">
-    <label for="tendered">Tendered</label>
+  <div class="cash" id="cash-fields">
+    <label for="tendered-amount">Amount tendered</label>
+
     <input
-      id="tendered"
+      id="tendered-amount"
       type="text"
       inputmode="decimal"
       autocomplete="off"
-      maxlength="9"
+      maxlength="12"
       placeholder="0.00"
     />
-    <div class="quick" id="quick"></div>
-    <div class="change" id="changeLine">Change: ₱0.00</div>
+
+    <div class="quick" id="cash-shortcuts"></div>
+
+    <div class="change" id="change-line">
+      Change: ₱0.00
+    </div>
   </div>
 
   <div class="sum">
-    <div><span>Subtotal</span><span id="sub"></span></div>
-    <div><span>Tax (8%)</span><span id="tax"></span></div>
-    <div class="total"><span>Total</span><span id="total"></span></div>
+    <div>
+      <span>Subtotal</span>
+      <span id="subtotal-value">₱0.00</span>
+    </div>
+
+    <div>
+      <span>Tax (8%)</span>
+      <span id="tax-value">₱0.00</span>
+    </div>
+
+    <div class="total">
+      <span>Total</span>
+      <span id="total-value">₱0.00</span>
+    </div>
   </div>
 
-  <button class="btn wide" id="charge" onclick="charge()" disabled>
+  <button
+    class="btn charge-button"
+    id="charge-button"
+    type="button"
+    disabled
+  >
     Charge ₱0.00
   </button>
 </aside>
 
-<aside class="held" id="heldPanel" hidden>
+<aside class="held" id="held-panel" hidden>
   <div class="held-head">
     <small>HELD ORDERS</small>
-    <button class="link" onclick="$('#heldPanel').hidden = true">Close</button>
+
+    <button
+      class="link"
+      id="close-held-button"
+      type="button"
+    >
+      Close
+    </button>
   </div>
-  <div id="heldList"></div>
+
+  <div id="held-list"></div>
 </aside>
 
-<div class="modal" id="receiptModal">
-  <div
-    id="receipt"
-    style="
-      background: var(--card, #fff);
-      border-radius: 20px;
-      padding: 26px 28px;
-      width: 100%;
-      max-width: 340px;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
-    "
-  >
-    <div style="text-align: center">
-      <span
-        style="
-          display: inline-block;
-          padding: 4px 14px;
-          border-radius: 999px;
-          background: var(--lgreen, #e4efe8);
-          color: var(--green, #2f6b45);
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          font-size: 0.75rem;
-        "
-        >PAID</span
-      >
-      <h2 class="serif" style="margin: 10px 0 2px; font-size: 1.4rem">
-        Brewskers
-      </h2>
-      <small id="rNo" style="color: var(--muted)"></small><br />
-      <small id="rMeta" style="color: var(--muted)"></small>
+<div class="modal" id="receipt-modal">
+  <div class="receipt">
+    <div class="receipt-head">
+      <span class="paid">PAID</span>
+
+      <h2>Brewskers</h2>
+
+      <small id="receipt-number"></small>
+      <small id="receipt-meta"></small>
     </div>
-    <div
-      id="rLines"
-      style="
-        margin: 16px 0;
-        border-top: 1px dashed var(--line, #ccc);
-        border-bottom: 1px dashed var(--line, #ccc);
-        padding: 10px 0;
-        font-size: 0.9rem;
-      "
-    ></div>
-    <div id="rSum" style="font-size: 0.9rem"></div>
-    <div class="no-print" style="display: flex; gap: 10px; margin-top: 18px">
-      <button class="btn ghost" style="flex: 1" onclick="window.print()">
+
+    <div class="receipt-lines" id="receipt-lines"></div>
+
+    <div id="receipt-summary"></div>
+
+    <div class="receipt-actions">
+      <button
+        class="btn ghost"
+        id="print-receipt-button"
+        type="button"
+      >
         Print
       </button>
-      <button class="btn" style="flex: 1" onclick="newOrder()">
+
+      <button
+        class="btn"
+        id="new-order-button"
+        type="button"
+      >
         New order
       </button>
     </div>
   </div>
 </div>
+{% endblock %}
 
-<style>
-  .quick {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-top: 6px;
-  }
-  .quick button {
-    border: 1px solid var(--line, #ddd);
-    background: transparent;
-    border-radius: 999px;
-    padding: 4px 12px;
-    font-size: 0.8rem;
-    cursor: pointer;
-  }
-  .quick button:hover {
-    background: var(--lgreen, #eee);
-  }
-  #charge:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-  #changeLine.short {
-    color: #b3261e;
-  }
-  #receiptModal {
-    align-items: center;
-    justify-content: center;
-  }
-  #receiptModal .rrow {
-    display: flex;
-    justify-content: space-between;
-    padding: 2px 0;
-  }
-  #receiptModal .rrow.big {
-    font-weight: 700;
-    font-size: 1.05rem;
-    padding-top: 6px;
-  }
-  @media print {
-    body * {
-      visibility: hidden;
-    }
-    #receipt,
-    #receipt * {
-      visibility: visible;
-    }
-    #receipt {
-      position: absolute;
-      left: 0;
-      top: 0;
-      box-shadow: none !important;
-    }
-    .no-print {
-      display: none !important;
-    }
-  }
-</style>
-{% endblock %} {% block script %}
+{% block script %}
 <script>
   const products = {{ products|tojson }};
-  const TAX = 0.08;
+  const TAX_RATE = 0.08;
+
   let cart = {};
-  let heldOrders = JSON.parse(localStorage.getItem("held") || "[]");
-  let category = "All";
-  let busy = false;
-  let currentTotal = 0;
+  let selectedCategory = "All";
+  let isSubmitting = false;
 
-  const categories = ["All", ...new Set(products.map(p => p.category))];
-  const initials = (name) => name.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("");
-  const round2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
+  const heldOrders = JSON.parse(
+    localStorage.getItem("brewskers-held-orders") || "[]"
+  );
 
-  /* ---------- search + customer name: no numbers ---------- */
-  function noNumbers(el, after) {
-    el.addEventListener("keydown", (e) => {
-      if (e.ctrlKey || e.metaKey || e.altKey || e.key.length > 1) return; // Backspace, arrows, Tab, Enter…
-      if (/\d/.test(e.key)) e.preventDefault();                           // block digits
+  const categories = [
+    "All",
+    ...new Set(products.map((product) => product.category))
+  ];
+
+  function roundCurrency(amount) {
+    return Math.round(
+      (Number(amount) + Number.EPSILON) * 100
+    ) / 100;
+  }
+
+  function getInitials(name) {
+    return name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((word) => word[0].toUpperCase())
+      .join("");
+  }
+
+  function getProduct(productId) {
+    return products.find(
+      (product) => product.product_id === Number(productId)
+    );
+  }
+
+  function getCartQuantity(productId) {
+    return cart[productId] || 0;
+  }
+
+  function getCartSubtotal() {
+    return roundCurrency(
+      Object.entries(cart).reduce((total, [productId, quantity]) => {
+        const product = getProduct(productId);
+
+        if (!product) return total;
+
+        return total + Number(product.price) * Number(quantity);
+      }, 0)
+    );
+  }
+
+  function setCustomerNameFilter(input) {
+    input.addEventListener("input", () => {
+      input.value = input.value.replace(/\d/g, "");
     });
-    el.addEventListener("input", () => {
-      const clean = el.value.replace(/\d/g, "");                          // also cleans paste / mobile keyboards
-      if (clean !== el.value) el.value = clean;
-      if (after) after();
+  }
+
+  function setAmountFilter(input) {
+    input.addEventListener("input", () => {
+      let value = input.value.replace(/[^\d.]/g, "");
+      const decimalIndex = value.indexOf(".");
+
+      if (decimalIndex !== -1) {
+        value =
+          value.slice(0, decimalIndex + 1) +
+          value
+            .slice(decimalIndex + 1)
+            .replace(/\./g, "")
+            .slice(0, 2);
+      }
+
+      input.value = value;
+      drawCart();
+    });
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        chargeOrder();
+      }
     });
   }
-  noNumbers($("#search"), () => draw());
-  noNumbers($("#customer"));
 
-  /* ---------- tendered: numbers only ---------- */
-  const tenderedEl = $("#tendered");
-  const cleanAmount = (v) => {
-    v = v.replace(/[^\d.]/g, "");                 // digits and dots only
-    const i = v.indexOf(".");
-    if (i !== -1) v = v.slice(0, i + 1) + v.slice(i + 1).replace(/\./g, "").slice(0, 2); // one dot, 2 decimals
-    return v.replace(/^0+(?=\d)/, "");            // no leading zeros
-  };
-  tenderedEl.addEventListener("keydown", (e) => {
-    if (e.ctrlKey || e.metaKey || e.altKey || e.key.length > 1) return; // Backspace, arrows, Tab, Enter…
-    if (!/[\d.]/.test(e.key)) e.preventDefault();                       // block letters & symbols
-  });
-  tenderedEl.addEventListener("input", () => {
-    tenderedEl.value = cleanAmount(tenderedEl.value);   // also cleans paste / mobile keyboards
-    drawCart();
-  });
-  tenderedEl.addEventListener("keydown", (e) => { if (e.key === "Enter") charge(); });
+  function drawProductFilters() {
+    $("#category-filters").innerHTML = categories
+      .map((category) => {
+        const selectedClass =
+          category === selectedCategory ? " on" : "";
 
-  /* ---------- menu grid ---------- */
-  function draw() {
-    $("#chips").innerHTML = categories
-      .map(c => `<button class="chip ${c === category ? "on" : ""}" onclick="category='${c}';draw()">${c}</button>`).join("");
-    const text = $("#search").value.toLowerCase();
-    $("#grid").innerHTML = products
-      .filter(p => (category === "All" || p.category === category) && p.name.toLowerCase().includes(text))
-      .map(p => `<button class="product ${p.stock <= 0 ? 'oos' : ''}" onclick="add(${p.product_id})">
-        <div class="art serif p${p.product_id % 6}">${initials(p.name)}</div>
-        ${p.stock <= 5 && p.stock > 0 ? `<i>Only ${p.stock}</i>` : ""}
-        ${p.stock <= 0   ? `<i class="oos">Out</i>` : ""}
-        <b>${p.name}</b>
-        <div class="serif price"><span>${peso(p.price)}</span><span>${p.stock} left</span></div>
-      </button>`).join("") || '<div class="empty pos-empty">No items in this category yet.</div>';
+        return `
+          <button
+            class="chip${selectedClass}"
+            type="button"
+            data-category="${category}"
+          >
+            ${category}
+          </button>
+        `;
+      })
+      .join("");
+
+    document
+      .querySelectorAll("#category-filters .chip")
+      .forEach((button) => {
+        button.onclick = () => {
+          selectedCategory = button.dataset.category;
+          drawProductFilters();
+          drawProducts();
+        };
+      });
   }
 
-  function add(id) {
-    const p = products.find(x => x.product_id === id);
-    if (p.stock <= 0) return toast(`${p.name} is out of stock`, "error");
-    if ((cart[id] || 0) >= p.stock) return toast(`No more stock for ${p.name}`, "error");
-    cart[id] = (cart[id] || 0) + 1; drawCart();
-  }
+  function drawProducts() {
+    const searchText = $("#search")
+      .value
+      .trim()
+      .toLowerCase();
 
-  function change(id, step) {
-    const p = products.find(x => x.product_id == id);
-    if (step > 0 && cart[id] >= p.stock) return toast(`No more stock for ${p.name}`, "error");
-    cart[id] += step; if (cart[id] < 1) delete cart[id]; drawCart();
-  }
+    const visibleProducts = products.filter((product) => {
+      const matchesCategory =
+        selectedCategory === "All" ||
+        product.category === selectedCategory;
 
-  function clearCart() { cart = {}; tenderedEl.value = ""; drawCart(); }
+      const searchableText = [
+        product.name,
+        product.category,
+        product.product_id
+      ]
+        .join(" ")
+        .toLowerCase();
 
-  /* ---------- cart + totals ---------- */
-  function drawCart() {
-    let subtotal = 0;
-    $("#lines").innerHTML = Object.entries(cart).map(([id, qty]) => {
-      const p = products.find(x => x.product_id == id);
-      subtotal += p.price * qty;
-      return `<div class="line">
-        <div class="pic serif p${p.product_id % 6}" style="width:40px;height:40px;font-size:1rem">${initials(p.name)}</div>
-        <div class="grow"><b>${p.name}</b>${peso(p.price)}</div>
-        <div class="qty">
-          <button onclick="change(${id},-1)">−</button>${qty}
-          <button onclick="change(${id},1)">+</button>
+      return (
+        matchesCategory &&
+        searchableText.includes(searchText)
+      );
+    });
+
+    if (!visibleProducts.length) {
+      $("#product-grid").innerHTML = `
+        <div class="empty pos-empty">
+          No products match your search.
         </div>
-      </div>`;
-    }).join("") || '<div class="empty">Tap an item to add it</div>';
+      `;
 
-    subtotal = round2(subtotal);
-    const total = round2(subtotal * (1 + TAX));
-    currentTotal = total;
-    $("#sub").textContent = peso(subtotal);
-    $("#tax").textContent = peso(round2(total - subtotal));
-    $("#total").textContent = peso(total);
-    $("#charge").textContent = "Charge " + peso(total);
-
-    const hasItems = total > 0;
-    const isCash = $("#method").value === "cash";
-    let ready = hasItems;
-
-    if (isCash) {
-      const tendered = parseFloat(tenderedEl.value) || 0;
-      const line = $("#changeLine");
-      if (tendered <= 0) { line.textContent = "Change: ₱0.00"; line.classList.remove("short"); }
-      else if (tendered >= total) { line.textContent = `Change: ${peso(round2(tendered - total))}`; line.classList.remove("short"); }
-      else { line.textContent = `Short: ${peso(round2(total - tendered))}`; line.classList.add("short"); }
-      ready = hasItems && tendered >= total;
-      drawQuick(total);
+      return;
     }
-    $("#charge").disabled = !ready || busy;
+
+    $("#product-grid").innerHTML = visibleProducts
+      .map((product) => {
+        const outOfStock = product.stock <= 0;
+        const lowStock =
+          product.stock > 0 && product.stock <= 5;
+
+        const stockBadge = outOfStock
+          ? '<i class="oos">Out</i>'
+          : lowStock
+            ? `<i>Only ${product.stock}</i>`
+            : "";
+
+        return `
+          <button
+            class="product ${outOfStock ? "oos" : ""}"
+            type="button"
+            data-product-id="${product.product_id}"
+            ${outOfStock ? "disabled" : ""}
+          >
+            <div class="art p${product.product_id % 6}">
+              ${getInitials(product.name)}
+            </div>
+
+            ${stockBadge}
+
+            <b>${product.name}</b>
+
+            <div class="price">
+              <span>${peso(product.price)}</span>
+              <span>${product.stock} left</span>
+            </div>
+          </button>
+        `;
+      })
+      .join("");
+
+    document
+      .querySelectorAll("#product-grid .product")
+      .forEach((button) => {
+        button.onclick = () => {
+          addProduct(Number(button.dataset.productId));
+        };
+      });
   }
 
-  function drawQuick(total) {
-    const opts = [100, 200, 500, 1000].filter(v => v >= total);
-    $("#quick").innerHTML = (total > 0 ? [`<button type="button" onclick="setTender(${total})">Exact</button>`] : [])
-      .concat(opts.map(v => `<button type="button" onclick="setTender(${v})">₱${v}</button>`)).join("");
-  }
-  function setTender(v) { tenderedEl.value = String(v); drawCart(); }
+  function addProduct(productId) {
+    const product = getProduct(productId);
 
-  function toggleCash() {
-    $("#cashBox").hidden = $("#method").value !== "cash";
-    if ($("#method").value !== "cash") tenderedEl.value = "";
+    if (!product || product.stock <= 0) {
+      toast(`${product?.name || "Product"} is out of stock`, "error");
+      return;
+    }
+
+    const currentQuantity = getCartQuantity(productId);
+
+    if (currentQuantity >= product.stock) {
+      toast(`No more stock for ${product.name}`, "error");
+      return;
+    }
+
+    cart[productId] = currentQuantity + 1;
     drawCart();
   }
 
-  /* ---------- hold / resume ---------- */
+  function changeQuantity(productId, amount) {
+    const product = getProduct(productId);
+
+    if (!product) return;
+
+    const currentQuantity = getCartQuantity(productId);
+    const nextQuantity = currentQuantity + amount;
+
+    if (nextQuantity > product.stock) {
+      toast(`No more stock for ${product.name}`, "error");
+      return;
+    }
+
+    if (nextQuantity <= 0) {
+      delete cart[productId];
+    } else {
+      cart[productId] = nextQuantity;
+    }
+
+    drawCart();
+  }
+
+  function removeLine(productId) {
+    const product = getProduct(productId);
+
+    delete cart[productId];
+    drawCart();
+
+    if (product) {
+      toast(`${product.name} removed`, "info");
+    }
+  }
+
+  function clearOrder() {
+    if (!Object.keys(cart).length) return;
+
+    const confirmed = confirm(
+      "Clear all items from the current order?"
+    );
+
+    if (!confirmed) return;
+
+    cart = {};
+    $("#customer-name").value = "";
+    $("#tendered-amount").value = "";
+    drawCart();
+  }
+
+  function drawCart() {
+    const entries = Object.entries(cart);
+
+    if (!entries.length) {
+      $("#order-lines").innerHTML = `
+        <div class="empty">
+          Select a product to begin an order.
+        </div>
+      `;
+    } else {
+      $("#order-lines").innerHTML = entries
+        .map(([productId, quantity]) => {
+          const product = getProduct(productId);
+
+          if (!product) return "";
+
+          const lineTotal = roundCurrency(
+            Number(product.price) * Number(quantity)
+          );
+
+          return `
+            <div class="line">
+              <div class="pic p${product.product_id % 6}">
+                ${getInitials(product.name)}
+              </div>
+
+              <div class="grow">
+                <b>${product.name}</b>
+
+                <div class="line-details">
+                  <span class="line-unit-price">
+                    ${peso(product.price)} each
+                  </span>
+
+                  <span class="line-total">
+                    ${peso(lineTotal)}
+                  </span>
+                </div>
+              </div>
+
+              <div class="qty">
+                <button
+                  type="button"
+                  aria-label="Decrease ${product.name} quantity"
+                  data-action="decrease"
+                  data-product-id="${product.product_id}"
+                >
+                  −
+                </button>
+
+                <span>${quantity}</span>
+
+                <button
+                  type="button"
+                  aria-label="Increase ${product.name} quantity"
+                  data-action="increase"
+                  data-product-id="${product.product_id}"
+                >
+                  +
+                </button>
+              </div>
+
+              <button
+                class="remove-line"
+                type="button"
+                aria-label="Remove ${product.name}"
+                title="Remove line"
+                data-product-id="${product.product_id}"
+              >
+                ×
+              </button>
+            </div>
+          `;
+        })
+        .join("");
+
+      document
+        .querySelectorAll(".qty button")
+        .forEach((button) => {
+          button.onclick = () => {
+            const productId = Number(button.dataset.productId);
+            const amount =
+              button.dataset.action === "increase" ? 1 : -1;
+
+            changeQuantity(productId, amount);
+          };
+        });
+
+      document
+        .querySelectorAll(".remove-line")
+        .forEach((button) => {
+          button.onclick = () => {
+            removeLine(Number(button.dataset.productId));
+          };
+        });
+    }
+
+    const subtotal = getCartSubtotal();
+    const total = roundCurrency(subtotal * (1 + TAX_RATE));
+    const tax = roundCurrency(total - subtotal);
+
+    $("#subtotal-value").textContent = peso(subtotal);
+    $("#tax-value").textContent = peso(tax);
+    $("#total-value").textContent = peso(total);
+
+    const chargeButton = $("#charge-button");
+    chargeButton.textContent = `Charge ${peso(total)}`;
+
+    const paymentMethod = $("#payment-method").value;
+    const tenderedAmount =
+      Number.parseFloat($("#tendered-amount").value) || 0;
+
+    let canCharge = entries.length > 0;
+
+    if (paymentMethod === "cash") {
+      canCharge = canCharge && tenderedAmount >= total;
+      drawCashShortcuts(total);
+    }
+
+    chargeButton.disabled = !canCharge || isSubmitting;
+  }
+
+  function drawCashShortcuts(total) {
+    const suggestedAmounts = [100, 200, 500, 1000]
+      .filter((amount) => amount >= total);
+
+    const shortcutButtons = [
+      total > 0
+        ? `
+          <button
+            type="button"
+            data-amount="${total}"
+          >
+            Exact
+          </button>
+        `
+        : ""
+    ];
+
+    suggestedAmounts.forEach((amount) => {
+      shortcutButtons.push(`
+        <button
+          type="button"
+          data-amount="${amount}"
+        >
+          ${peso(amount)}
+        </button>
+      `);
+    });
+
+    $("#cash-shortcuts").innerHTML =
+      shortcutButtons.join("");
+
+    document
+      .querySelectorAll("#cash-shortcuts button")
+      .forEach((button) => {
+        button.onclick = () => {
+          $("#tendered-amount").value =
+            button.dataset.amount;
+
+          drawCart();
+        };
+      });
+  }
+
+  function toggleCashFields() {
+    const usesCash =
+      $("#payment-method").value === "cash";
+
+    $("#cash-fields").hidden = !usesCash;
+
+    if (!usesCash) {
+      $("#tendered-amount").value = "";
+    }
+
+    drawCart();
+  }
+
+  function saveHeldOrders() {
+    localStorage.setItem(
+      "brewskers-held-orders",
+      JSON.stringify(heldOrders)
+    );
+  }
+
   function holdOrder() {
-    if (!Object.keys(cart).length) return toast("Cart is empty", "error");
-    heldOrders.push({ items: {...cart}, customer: $("#customer").value, at: Date.now() });
-    localStorage.setItem("held", JSON.stringify(heldOrders));
-    cart = {}; $("#customer").value = ""; tenderedEl.value = ""; drawCart(); renderHeld();
-    toast("Order held — take the next customer", "success");
+    if (!Object.keys(cart).length) {
+      toast("The current order is empty", "error");
+      return;
+    }
+
+    heldOrders.push({
+      items: { ...cart },
+      customer: $("#customer-name").value.trim(),
+      createdAt: new Date().toISOString()
+    });
+
+    saveHeldOrders();
+
+    cart = {};
+    $("#customer-name").value = "";
+    $("#tendered-amount").value = "";
+
+    drawCart();
+    drawHeldOrders();
+
+    toast("Order held", "success");
   }
 
-  function renderHeld() {
-    if (!heldOrders.length) { $("#heldPanel").hidden = true; return; }
-    $("#heldPanel").hidden = false;
-    $("#heldList").innerHTML = heldOrders.map((h, i) => {
-      const items = Object.entries(h.items).map(([id, q]) => {
-        const p = products.find(x => x.product_id == id);
-        return p ? `${q}× ${p.name}` : "";
-      }).filter(Boolean).join(", ");
-      return `<div class="held-row">
-        <div class="grow"><b>${h.customer || "Walk-in"}</b><small>${items}</small></div>
-        <button class="btn ghost small" onclick="resume(${i})">Resume</button>
-        <button class="link danger" onclick="dropHeld(${i})">Drop</button>
-      </div>`;
-    }).join("");
+  function drawHeldOrders() {
+    if (!heldOrders.length) {
+      $("#held-panel").hidden = true;
+      return;
+    }
+
+    $("#held-panel").hidden = false;
+
+    $("#held-list").innerHTML = heldOrders
+      .map((heldOrder, index) => {
+        const itemSummary = Object.entries(
+          heldOrder.items
+        )
+          .map(([productId, quantity]) => {
+            const product = getProduct(productId);
+
+            return product
+              ? `${quantity}× ${product.name}`
+              : "";
+          })
+          .filter(Boolean)
+          .join(", ");
+
+        return `
+          <div class="held-row">
+            <div class="grow">
+              <b>
+                ${heldOrder.customer || "Walk-in"}
+              </b>
+
+              <small>${itemSummary}</small>
+            </div>
+
+            <button
+              class="btn ghost small"
+              type="button"
+              data-resume-index="${index}"
+            >
+              Resume
+            </button>
+
+            <button
+              class="link danger"
+              type="button"
+              data-drop-index="${index}"
+            >
+              Drop
+            </button>
+          </div>
+        `;
+      })
+      .join("");
+
+    document
+      .querySelectorAll("[data-resume-index]")
+      .forEach((button) => {
+        button.onclick = () => {
+          resumeHeldOrder(
+            Number(button.dataset.resumeIndex)
+          );
+        };
+      });
+
+    document
+      .querySelectorAll("[data-drop-index]")
+      .forEach((button) => {
+        button.onclick = () => {
+          dropHeldOrder(
+            Number(button.dataset.dropIndex)
+          );
+        };
+      });
   }
 
-  function resume(i) {
-    cart = {...heldOrders[i].items};
-    $("#customer").value = heldOrders[i].customer || "";
-    heldOrders.splice(i, 1);
-    localStorage.setItem("held", JSON.stringify(heldOrders));
-    renderHeld(); drawCart();
+  function resumeHeldOrder(index) {
+    const heldOrder = heldOrders[index];
+
+    if (!heldOrder) return;
+
+    cart = { ...heldOrder.items };
+    $("#customer-name").value = heldOrder.customer || "";
+
+    heldOrders.splice(index, 1);
+    saveHeldOrders();
+
+    drawCart();
+    drawHeldOrders();
   }
 
-  function dropHeld(i) {
-    heldOrders.splice(i, 1);
-    localStorage.setItem("held", JSON.stringify(heldOrders));
-    renderHeld();
+  function dropHeldOrder(index) {
+    heldOrders.splice(index, 1);
+    saveHeldOrders();
+    drawHeldOrders();
   }
 
-  /* ---------- checkout ---------- */
-  async function charge() {
-    if (busy) return;
-    if (!Object.keys(cart).length) return toast("Cart is empty", "error");
-    const method = $("#method").value;
-    if (method === "cash" && (parseFloat(tenderedEl.value) || 0) < currentTotal)
-      return toast("Tendered amount is less than the total", "error");
-
-    const items = Object.entries(cart).map(([id, quantity]) => ({ product_id: +id, quantity }));
-    const payload = { items, customer_name: $("#customer").value, payment_method: method };
-    if (method === "cash") payload.amount_paid = parseFloat(tenderedEl.value);
-
-    busy = true; $("#charge").disabled = true; $("#charge").textContent = "Processing…";
-    let result;
-    try { result = await api("/api/orders", payload); }
-    catch (err) { result = { ok: false, error: "Could not reach the server" }; }
-    busy = false;
-
-    if (!result || !result.ok) { drawCart(); return toast((result && result.error) || "Payment failed", "error"); }
-    showReceipt(result);
+  function buildReceiptRow(label, value, className = "") {
+    return `
+      <div class="rrow ${className}">
+        <span>${label}</span>
+        <span>${value}</span>
+      </div>
+    `;
   }
 
-  function showReceipt(r) {
-    const row = (a, b, cls = "") => `<div class="rrow ${cls}"><span>${a}</span><span>${b}</span></div>`;
-    $("#rNo").textContent = r.order_no;
-    $("#rMeta").textContent = new Date().toLocaleString("en-PH") + " · " + r.method.toUpperCase();
-    $("#rLines").innerHTML = r.lines.map(l => row(`${l.qty}× ${l.name}`, peso(l.price * l.qty))).join("");
-    $("#rSum").innerHTML =
-      row("Subtotal", peso(r.subtotal)) + row("Tax (8%)", peso(r.tax)) +
-      row("Total", peso(r.total), "big") +
-      (r.method === "cash" ? row("Tendered", peso(r.paid)) + row("Change", peso(r.change)) : "");
-    $("#receiptModal").classList.add("open");
-    cart = {}; tenderedEl.value = ""; $("#customer").value = ""; drawCart();
+  function showReceipt(result) {
+    const receipt = {
+      order_no: result.order_no,
+      method: result.method,
+      subtotal: result.subtotal,
+      tax: result.tax,
+      total: result.total,
+      paid: result.paid,
+      change: result.change,
+      lines: result.lines || []
+    };
+
+    $("#receipt-number").textContent =
+      receipt.order_no;
+
+    $("#receipt-meta").textContent = [
+      new Date().toLocaleString("en-PH"),
+      receipt.method.toUpperCase()
+    ].join(" · ");
+
+    $("#receipt-lines").innerHTML = receipt.lines
+      .map((line) => {
+        const lineTotal = roundCurrency(
+          Number(line.price) * Number(line.qty)
+        );
+
+        return buildReceiptRow(
+          `${line.qty}× ${line.name}`,
+          peso(lineTotal)
+        );
+      })
+      .join("");
+
+    $("#receipt-summary").innerHTML =
+      buildReceiptRow(
+        "Subtotal",
+        peso(receipt.subtotal)
+      )
+      + buildReceiptRow(
+          "Tax (8%)",
+          peso(receipt.tax)
+        )
+      + buildReceiptRow(
+          "Total",
+          peso(receipt.total),
+          "big"
+        )
+      + (
+        receipt.method === "cash"
+          ? buildReceiptRow(
+              "Tendered",
+              peso(receipt.paid)
+            )
+            + buildReceiptRow(
+                "Change",
+                peso(receipt.change)
+              )
+          : ""
+      );
+
+    $("#receipt-modal").classList.add("open");
+
+    cart = {};
+    $("#customer-name").value = "";
+    $("#tendered-amount").value = "";
+
+    drawCart();
   }
 
-  function newOrder() { location.reload(); }   // refresh stock counts
+  async function chargeOrder() {
+    if (isSubmitting) return;
 
-  toggleCash(); draw(); drawCart(); renderHeld();
+    if (!Object.keys(cart).length) {
+      toast("The current order is empty", "error");
+      return;
+    }
+
+    const method = $("#payment-method").value;
+    const total = roundCurrency(
+      getCartSubtotal() * (1 + TAX_RATE)
+    );
+
+    const tenderedAmount =
+      Number.parseFloat($("#tendered-amount").value) || 0;
+
+    if (
+      method === "cash" &&
+      tenderedAmount < total
+    ) {
+      toast(
+        "The amount tendered is less than the total",
+        "error"
+      );
+      return;
+    }
+
+    const items = Object.entries(cart).map(
+      ([productId, quantity]) => ({
+        product_id: Number(productId),
+        quantity: Number(quantity)
+      })
+    );
+
+    const payload = {
+      items,
+      customer_name:
+        $("#customer-name").value.trim() || "Walk-in",
+      payment_method: method
+    };
+
+    if (method === "cash") {
+      payload.amount_paid = tenderedAmount;
+    }
+
+    isSubmitting = true;
+
+    const chargeButton = $("#charge-button");
+    const originalText = chargeButton.textContent;
+
+    chargeButton.disabled = true;
+    chargeButton.textContent = "Processing…";
+
+    try {
+      const result = await api("/api/orders", payload);
+
+      if (!result.ok) {
+        toast(
+          result.error || "Could not save the order",
+          "error"
+        );
+        return;
+      }
+
+      showReceipt(result);
+    } finally {
+      isSubmitting = false;
+      chargeButton.textContent = originalText;
+      drawCart();
+    }
+  }
+
+  $("#search").addEventListener("input", drawProducts);
+
+  $("#clear-order-button").onclick = clearOrder;
+  $("#hold-order-button").onclick = holdOrder;
+
+  $("#close-held-button").onclick = () => {
+    $("#held-panel").hidden = true;
+  };
+
+  $("#charge-button").onclick = chargeOrder;
+
+  $("#print-receipt-button").onclick = () => {
+    document.body.classList.add("printing-receipt");
+    window.print();
+  };
+
+  $("#new-order-button").onclick = () => {
+    $("#receipt-modal").classList.remove("open");
+    location.reload();
+  };
+
+  $("#receipt-modal").onclick = (event) => {
+    if (event.target === $("#receipt-modal")) {
+      $("#receipt-modal").classList.remove("open");
+    }
+  };
+
+  window.addEventListener("afterprint", () => {
+    document.body.classList.remove("printing-receipt");
+  });
+
+  setCustomerNameFilter($("#customer-name"));
+  setAmountFilter($("#tendered-amount"));
+
+  drawProductFilters();
+  drawProducts();
+  drawCart();
+  drawHeldOrders();
+  toggleCashFields();
 </script>
 {% endblock %}

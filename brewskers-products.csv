@@ -1,0 +1,31 @@
+name,category,price,stock
+Americano,Coffee,110.0,25
+Caffe Latte,Coffee,130.0,25
+Cappuccino,Coffee,130.0,24
+Caramel Macchiato,Coffee,150.0,25
+Cold Brew,Coffee,145.0,25
+Espresso,Coffee,90.0,25
+Flat White,Coffee,135.0,25
+Matcha Latte,Coffee,155.0,25
+Mocha,Coffee,140.0,25
+Spanish Latte,Coffee,150.0,25
+Banana Bread,Pastry,75.0,25
+Blueberry Muffin,Pastry,80.0,25
+Butter Croissant,Pastry,85.0,25
+Cheesecake,Pastry,145.0,25
+Chocolate Cookie,Pastry,60.0,25
+Chocolate Muffin,Pastry,80.0,25
+Cinnamon Roll,Pastry,100.0,25
+Oatmeal Cookie,Pastry,60.0,25
+Pain au Chocolat,Pastry,95.0,25
+Tiramisu Slice,Pastry,140.0,25
+Apple Chew,Pet Treats,50.0,25
+Bacon Bites,Pet Treats,75.0,25
+Catnip Cookie,Pet Treats,55.0,25
+Chicken Jerky,Pet Treats,90.0,25
+Peanut Butter Cookie,Pet Treats,70.0,25
+Pumpkin Biscuit,Pet Treats,65.0,25
+Pup-cchino,Pet Treats,60.0,25
+Salmon Strips,Pet Treats,95.0,25
+Tuna Treat,Pet Treats,70.0,25
+Yogurt Drop,Pet Treats,60.0,25
