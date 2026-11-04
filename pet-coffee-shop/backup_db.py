@@ -1,16 +1,3 @@
-"""Back up the Brewskers database and (optionally) prove the backup restores.
-
-    python backup_db.py              make a backup now (keeps the newest 14)
-    python backup_db.py --verify     also open the newest backup and check it
-    python backup_db.py --keep 30    keep the newest 30 instead
-
-Schedule it daily: Windows Task Scheduler, or cron on Linux/macOS, e.g.
-    0 22 * * *  cd /path/to/brewskers && python backup_db.py --verify
-
-Copy the backups folder to another drive or cloud storage too. A backup that
-sits next to the database is lost with it.
-"""
-
 import argparse
 import datetime
 import glob
