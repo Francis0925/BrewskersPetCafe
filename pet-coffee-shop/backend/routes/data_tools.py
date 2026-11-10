@@ -5,6 +5,7 @@ import csv
 import datetime
 import io
 import os
+import re
 import sqlite3
 import zipfile
 
@@ -20,18 +21,21 @@ from backend.csv_utils import (
     validate_product_csv_row,
     validate_service_csv_row,
 )
-from backend.database import get_database_path
+from backend.database import get_database_path, migrate_db
+from backend.errors import InvalidRecordError
 from backend.helpers import query, run
+from backend.models import StoreSettings
 from backend.permissions import admin_required
+from backend.pos_state import reset_all
 
 
 EXPORT_ALL_TABLES = {
     "products": ["category", "name", "price", "stock", "status", "image"],
     "services": ["name", "price", "duration", "active"],
-    "orders": ["order_no", "customer_name", "total_amount", "payment_method", "amount_paid", "change_amount", "status"],
+    "orders": ["order_no", "customer_name", "total_amount", "payment_method", "amount_paid", "change_amount", "status", "tax_rate"],
     "order_items": ["order_no", "product_name", "quantity", "price"],
     "appointments": ["pet_name", "pet_type", "breed", "pet_age", "owner_name", "phone", "service_name", "appt_date", "appt_time", "status", "notes"],
-    "store_profile": ["store_name", "address", "phone", "email"],
+    "store_profile": ["store_name", "address", "phone", "email", "tax_rate", "low_stock_limit"],
 }
 
 
@@ -41,7 +45,8 @@ def _export_all_rows():
     orders = query(
         "SELECT order_no, COALESCE(customer_name, '') AS customer_name, total_amount, payment_method, "
         "COALESCE(amount_paid, '') AS amount_paid, COALESCE(change_amount, '') AS change_amount, "
-        "COALESCE(status, 'completed') AS status FROM orders ORDER BY order_date, order_id"
+        "COALESCE(status, 'completed') AS status, COALESCE(tax_rate, 8.0) AS tax_rate "
+        "FROM orders ORDER BY order_date, order_id"
     )
     order_items = query(
         "SELECT o.order_no AS order_no, COALESCE(p.name, 'Removed product') AS product_name, "
@@ -54,7 +59,7 @@ def _export_all_rows():
         "a.owner_name, a.phone, s.name AS service_name, a.appt_date, a.appt_time, a.status, COALESCE(a.notes, '') AS notes "
         "FROM appointments a JOIN services s ON s.service_id = a.service_id ORDER BY a.appt_date, a.appt_time"
     )
-    store_profile = query("SELECT store_name, COALESCE(address, '') AS address, COALESCE(phone, '') AS phone, COALESCE(email, '') AS email FROM store_profile")
+    store_profile = query("SELECT store_name, COALESCE(address, '') AS address, COALESCE(phone, '') AS phone, COALESCE(email, '') AS email, COALESCE(tax_rate, 12.0) AS tax_rate, COALESCE(low_stock_limit, 5) AS low_stock_limit FROM store_profile")
     return {
         "products": products,
         "services": services,
@@ -68,12 +73,37 @@ def _export_all_rows():
 @app.get("/admin/data")
 @admin_required
 def admin_data(user):
+    # Row counts for the overview strip at the top of the page.
+    counts = {}
+    for table in (
+        "products", "services", "orders", "order_items",
+        "appointments", "users", "activity_log",
+    ):
+        counts[table] = query(
+            f"SELECT COUNT(*) AS n FROM {table}",
+            one=True,
+            default={"n": 0},
+        )["n"]
+
+    db_path = get_database_path()
+    db_size = os.path.getsize(db_path) if os.path.exists(db_path) else 0
+    backup_dir = os.path.join(os.path.dirname(db_path), "backups")
+    backups = (
+        sorted(f for f in os.listdir(backup_dir) if f.endswith(".db"))
+        if os.path.exists(backup_dir)
+        else []
+    )
+
     return render_template(
         "data_tools.html",
-        title="Import & export",
+        title="Data management",
         active="admin",
         user=user,
         exports={"products": "Products", "services": "Services", "orders": "Orders", "appointments": "Appointments"},
+        counts=counts,
+        db_size=db_size,
+        backup_count=len(backups),
+        last_backup=backups[-1] if backups else None,
     )
 
 
@@ -215,6 +245,7 @@ def confirm_admin_import(user):
         return jsonify(ok=False, error="Could not import the CSV"), 500
     finally:
         db.close()
+    reset_all()
     record_activity(user_id=user["user_id"], action="csv_imported", description=f"Imported {len(rows)} {entity_type} from CSV", entity_type=entity_type)
     return jsonify(ok=True, imported_count=len(rows))
 
@@ -330,9 +361,27 @@ def confirm_all_import(user):
                 status = (row.get("status") or "completed").strip().lower()
                 if status not in ("queued", "completed", "cancelled"):
                     status = "queued"
+                # Optional order_date column, so imported orders keep their
+                # original day instead of all landing on today. Empty or
+                # invalid values fall back to the table default, which is now.
+                order_date = (row.get("order_date") or "").strip()
+                try:
+                    datetime.datetime.fromisoformat(order_date)
+                except ValueError:
+                    order_date = None
+                # Optional tax rate snapshot, so reprinted receipts keep the
+                # rate that was actually charged. Missing or invalid values
+                # fall back to 8.0, the rate used before this column existed.
+                try:
+                    order_tax_rate = float(row.get("tax_rate"))
+                    if not 0 <= order_tax_rate <= 100:
+                        order_tax_rate = 8.0
+                except (TypeError, ValueError):
+                    order_tax_rate = 8.0
                 cursor.execute(
-                    "INSERT INTO orders (order_no, customer_name, total_amount, payment_method, amount_paid, change_amount, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                    (order_no, (row.get("customer_name") or "Walk-in").strip() or "Walk-in", total, (row.get("payment_method") or "cash").strip() or "cash", row.get("amount_paid") or None, row.get("change_amount") or None, status),
+                    "INSERT INTO orders (order_no, customer_name, total_amount, payment_method, amount_paid, change_amount, status, order_date, tax_rate) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP), ?)",
+                    (order_no, (row.get("customer_name") or "Walk-in").strip() or "Walk-in", total, (row.get("payment_method") or "cash").strip() or "cash", row.get("amount_paid") or None, row.get("change_amount") or None, status, order_date, order_tax_rate),
                 )
                 order_id_by_no[order_no] = cursor.lastrowid
                 count += 1
@@ -382,6 +431,45 @@ def confirm_all_import(user):
                 )
                 count += 1
             imported["appointments"] = count
+        # Store profile: update the single profile row when the ZIP has one
+        if "store_profile.csv" in files:
+            reader = csv.DictReader(io.StringIO(files["store_profile.csv"]))
+            row = next(reader, None)
+            if row:
+                store_name = (row.get("store_name") or "").strip() or "Brewskers"
+                current = cursor.execute(
+                    "SELECT tax_rate, low_stock_limit FROM store_profile LIMIT 1"
+                ).fetchone()
+                # Keep the current values when the CSV omits the settings
+                # columns or carries something invalid.
+                try:
+                    profile_tax = float(row.get("tax_rate"))
+                    if not 0 <= profile_tax <= 100:
+                        raise ValueError
+                except (TypeError, ValueError):
+                    profile_tax = (
+                        float(current["tax_rate"]) if current and current["tax_rate"] is not None else 12.0
+                    )
+                try:
+                    profile_low = int(row.get("low_stock_limit"))
+                    if not 0 <= profile_low <= 999:
+                        raise ValueError
+                except (TypeError, ValueError):
+                    profile_low = (
+                        int(current["low_stock_limit"]) if current and current["low_stock_limit"] is not None else 5
+                    )
+                existing = cursor.execute("SELECT store_id FROM store_profile LIMIT 1").fetchone()
+                if existing:
+                    cursor.execute(
+                        "UPDATE store_profile SET store_name = ?, address = ?, phone = ?, email = ?, tax_rate = ?, low_stock_limit = ? WHERE store_id = ?",
+                        (store_name, (row.get("address") or "").strip(), (row.get("phone") or "").strip(), (row.get("email") or "").strip(), profile_tax, profile_low, existing["store_id"]),
+                    )
+                else:
+                    cursor.execute(
+                        "INSERT INTO store_profile (store_name, address, phone, email, tax_rate, low_stock_limit) VALUES (?, ?, ?, ?, ?, ?)",
+                        (store_name, (row.get("address") or "").strip(), (row.get("phone") or "").strip(), (row.get("email") or "").strip(), profile_tax, profile_low),
+                    )
+                imported["store_profile"] = 1
         db.commit()
     except Exception:
         db.rollback()
@@ -389,6 +477,7 @@ def confirm_all_import(user):
         return jsonify(ok=False, error="Could not import the ZIP file"), 500
     finally:
         db.close()
+    reset_all()
     record_activity(user_id=user["user_id"], action="all_imported", description=f"Imported all data from ZIP: {imported}", entity_type="system")
     return jsonify(ok=True, imported=imported)
 
@@ -455,6 +544,11 @@ def import_database(user):
             return jsonify(ok=False, error="Could not restore the SQL file"), 500
         finally:
             db.close()
+    # The restored file may come from an older version of the app, so run
+    # the startup migrations right away. Without this, a backup without
+    # the settings columns would break checkout until the next restart.
+    migrate_db()
+    reset_all()
     record_activity(user_id=user["user_id"], action="database_restored", description=f"Restored database from {upload.filename}, previous DB backed up", entity_type="system")
     return jsonify(ok=True, auto_backup=os.path.basename(auto_backup))
 
@@ -480,12 +574,35 @@ def create_backup_now(user):
 @app.get("/admin/settings")
 @admin_required
 def settings_page(user):
-    profile = query("SELECT * FROM store_profile LIMIT 1", one=True) or {"store_name": "Brewskers", "address": "", "phone": "", "email": ""}
+    profile = query("SELECT * FROM store_profile LIMIT 1", one=True) or {
+        "store_name": "Brewskers", "address": "", "phone": "", "email": "",
+        "tax_rate": 12.0, "low_stock_limit": 5,
+    }
+    settings = StoreSettings.from_row(profile)
     db_path = get_database_path()
     db_size = os.path.getsize(db_path) if os.path.exists(db_path) else 0
     backup_dir = os.path.join(os.path.dirname(db_path), "backups")
-    backups = sorted([f for f in os.listdir(backup_dir) if f.endswith(".db")]) if os.path.exists(backup_dir) else []
-    return render_template("settings.html", user=user, active="admin", title="Settings", profile=profile, db_size=db_size, backups=backups)
+    backups = []
+    if os.path.exists(backup_dir):
+        for name in sorted(f for f in os.listdir(backup_dir) if f.endswith(".db")):
+            path = os.path.join(backup_dir, name)
+            backups.append(
+                {
+                    "name": name,
+                    "size": os.path.getsize(path) if os.path.exists(path) else 0,
+                    "created": datetime.datetime.fromtimestamp(os.path.getmtime(path)).strftime("%Y-%m-%d %H:%M"),
+                }
+            )
+    return render_template(
+        "settings.html",
+        user=user,
+        active="admin",
+        title="Settings",
+        profile=profile,
+        settings=settings,
+        db_size=db_size,
+        backups=backups,
+    )
 
 
 @app.post("/api/admin/settings")
@@ -500,7 +617,132 @@ def update_settings(user):
         run("UPDATE store_profile SET store_name = ?, address = ?, phone = ?, email = ? WHERE store_id = ?", (store_name, (data.get("address") or "").strip(), (data.get("phone") or "").strip(), (data.get("email") or "").strip(), existing["store_id"]))
     else:
         run("INSERT INTO store_profile (store_name, address, phone, email) VALUES (?, ?, ?, ?)", (store_name, (data.get("address") or "").strip(), (data.get("phone") or "").strip(), (data.get("email") or "").strip()))
-    record_activity(user_id=user["user_id"], action="settings_updated", description="Updated store settings", entity_type="system")
+    record_activity(user_id=user["user_id"], action="settings_updated", description="Updated store profile", entity_type="system")
+    return jsonify(ok=True)
+
+
+@app.post("/api/admin/settings/operations")
+@admin_required
+def update_operations_settings(user):
+    """Save the tax rate and low stock threshold from the settings page."""
+    data = request.get_json(force=True) or {}
+    try:
+        tax_rate = StoreSettings.parse_tax_rate(data.get("tax_rate"))
+        low_stock_limit = StoreSettings.parse_low_stock_limit(data.get("low_stock_limit"))
+    except InvalidRecordError as error:
+        return jsonify(ok=False, error=str(error)), 400
+
+    existing = query("SELECT store_id FROM store_profile LIMIT 1", one=True)
+    if existing:
+        run(
+            "UPDATE store_profile SET tax_rate = ?, low_stock_limit = ? WHERE store_id = ?",
+            (float(tax_rate), low_stock_limit, existing["store_id"]),
+        )
+    else:
+        run(
+            "INSERT INTO store_profile (store_name, tax_rate, low_stock_limit) VALUES ('Brewskers', ?, ?)",
+            (float(tax_rate), low_stock_limit),
+        )
+    record_activity(
+        user_id=user["user_id"],
+        action="settings_updated",
+        description=f"Updated operations settings, tax {tax_rate} percent, low stock at {low_stock_limit}",
+        entity_type="system",
+    )
+    return jsonify(ok=True, tax_rate=float(tax_rate), low_stock_limit=low_stock_limit)
+
+
+# Only plain backup filenames are accepted, never paths, so a request can
+# never reach a file outside the backups folder.
+BACKUP_NAME_RE = re.compile(r"^[A-Za-z0-9_.\-]+\.db$")
+
+
+def _backup_dir():
+    return os.path.join(os.path.dirname(get_database_path()), "backups")
+
+
+def _verify_backup_file(path):
+    """Return an error message when the file is not a usable database."""
+    try:
+        test = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+        tables = test.execute(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table'"
+        ).fetchone()[0]
+        test.close()
+    except sqlite3.Error:
+        return "The backup file is not a valid database"
+    if tables == 0:
+        return "The backup file has no tables"
+    return None
+
+
+@app.post("/api/admin/backup/restore")
+@admin_required
+def restore_backup(user):
+    """Replace the live database with one of the saved backup files."""
+    data = request.get_json(force=True) or {}
+    name = (data.get("filename") or "").strip()
+    if not BACKUP_NAME_RE.match(name):
+        return jsonify(ok=False, error="Invalid backup name"), 400
+    backup_dir = _backup_dir()
+    path = os.path.join(backup_dir, name)
+    if not os.path.isfile(path):
+        return jsonify(ok=False, error="That backup no longer exists"), 404
+
+    error = _verify_backup_file(path)
+    if error:
+        return jsonify(ok=False, error=error), 400
+
+    # Save the current database first, so nothing is ever lost.
+    stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    auto_backup = os.path.join(backup_dir, f"brewskers-before-restore-{stamp}.db")
+    source = sqlite3.connect(get_database_path())
+    copy = sqlite3.connect(auto_backup)
+    with copy:
+        source.backup(copy)
+    copy.close()
+    source.close()
+
+    # Copy the chosen backup over the live database through the SQLite
+    # backup API, which is safe even while other connections exist.
+    src = sqlite3.connect(path)
+    dst = sqlite3.connect(get_database_path())
+    with dst:
+        src.backup(dst)
+    dst.close()
+    src.close()
+
+    # The backup may come from an older app version, so apply startup
+    # migrations right away, then rebuild the in memory indexes.
+    migrate_db()
+    reset_all()
+    record_activity(
+        user_id=user["user_id"],
+        action="backup_restored",
+        description=f"Restored database from backup {name}, previous data saved as {os.path.basename(auto_backup)}",
+        entity_type="system",
+    )
+    return jsonify(ok=True, auto_backup=os.path.basename(auto_backup))
+
+
+@app.post("/api/admin/backup/delete")
+@admin_required
+def delete_backup(user):
+    """Delete one saved backup file from the backups folder."""
+    data = request.get_json(force=True) or {}
+    name = (data.get("filename") or "").strip()
+    if not BACKUP_NAME_RE.match(name):
+        return jsonify(ok=False, error="Invalid backup name"), 400
+    path = os.path.join(_backup_dir(), name)
+    if not os.path.isfile(path):
+        return jsonify(ok=False, error="That backup no longer exists"), 404
+    os.remove(path)
+    record_activity(
+        user_id=user["user_id"],
+        action="backup_deleted",
+        description=f"Deleted backup {name}",
+        entity_type="system",
+    )
     return jsonify(ok=True)
 
 
@@ -513,12 +755,25 @@ def api_admin_reset_data(user):
     if confirmation != "DELETE":
         return jsonify(ok=False, error="Type DELETE to confirm"), 400
     descriptions = {
+        # Inventory and catalog maintenance actions.
         "reset_stock": "Reset all product stock to zero",
-        "hide_products": "Hid all products from inventory and the POS",
-        "hide_services": "Hid all services from booking",
-        "delete_appointments": "Deleted all appointments",
-        "delete_orders": "Deleted all order and receipt history",
-        "delete_activity": "Cleared all recent activity",
+        "deactivate_products": "Hide all products from inventory and the POS",
+        "hide_products": "Hide all products from inventory and the POS",
+        "deactivate_services": "Hide all services from booking",
+        "hide_services": "Hide all services from booking",
+        # Business record maintenance actions.
+        "clear_appointments": "Permanently delete all appointments",
+        "delete_appointments": "Permanently delete all appointments",
+        "clear_cancelled_appointments": "Permanently delete all cancelled appointments",
+        "clear_completed_appointments": "Permanently delete all completed appointments",
+        "clear_orders": "Permanently clear all order and receipt history",
+        "delete_orders": "Permanently clear all order and receipt history",
+        "clear_customers": "Remove customer names from orders while keeping the orders",
+        # System activity maintenance actions.
+        "clear_activity": "Permanently clear all activity log entries",
+        "delete_activity": "Permanently clear all activity log entries",
+        "clear_logins": "Permanently clear login history entries",
+        "clear_archived": "Permanently remove archived records",
     }
     if action not in descriptions:
         return jsonify(ok=False, error="Unknown reset action"), 400
@@ -527,17 +782,31 @@ def api_admin_reset_data(user):
     try:
         if action == "reset_stock":
             cursor.execute("UPDATE products SET stock = 0")
-        elif action == "hide_products":
+        elif action == "deactivate_products" or action == "hide_products":
             cursor.execute("UPDATE products SET status = 'hidden'")
-        elif action == "hide_services":
+        elif action == "deactivate_services" or action == "hide_services":
             cursor.execute("UPDATE services SET active = 0")
-        elif action == "delete_appointments":
+        elif action == "clear_appointments" or action == "delete_appointments":
             cursor.execute("DELETE FROM appointments")
-        elif action == "delete_orders":
+        elif action == "clear_cancelled_appointments":
+            cursor.execute("DELETE FROM appointments WHERE status = 'cancelled'")
+        elif action == "clear_completed_appointments":
+            cursor.execute("DELETE FROM appointments WHERE status = 'completed'")
+        elif action == "clear_orders" or action == "delete_orders":
             cursor.execute("DELETE FROM order_items")
             cursor.execute("DELETE FROM orders")
-        elif action == "delete_activity":
+        elif action == "clear_activity" or action == "delete_activity":
             cursor.execute("DELETE FROM activity_log")
+        elif action == "clear_logins":
+            cursor.execute("DELETE FROM activity_log WHERE action LIKE 'login%'")
+        elif action == "clear_customers":
+            cursor.execute("UPDATE orders SET customer_name = NULL")
+        elif action == "clear_archived":
+            cursor.execute(
+                "DELETE FROM order_items WHERE product_id IN "
+                "(SELECT product_id FROM products WHERE status = 'hidden')"
+            )
+            cursor.execute("DELETE FROM products WHERE status = 'hidden'")
         db.commit()
     except Exception:
         db.rollback()
@@ -545,5 +814,6 @@ def api_admin_reset_data(user):
         return jsonify(ok=False, error="Could not clear the selected data"), 500
     finally:
         db.close()
+    reset_all()
     record_activity(user_id=user["user_id"], action="data_cleared", description=descriptions[action], entity_type="system")
     return jsonify(ok=True, message=descriptions[action])

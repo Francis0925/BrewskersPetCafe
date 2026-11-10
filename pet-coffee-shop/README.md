@@ -17,6 +17,10 @@ pet-coffee-shop/
     security.py           CSRF, rate limiting, headers, input validation
     permissions.py        current_user(), user_has() and route decorators
     helpers.py            query(), run() and row cleaning
+    errors.py             Custom exceptions: RecordError and its subclasses
+    models.py             Record classes: Product, Service, Appointment, Cart
+    structures.py         Hand-written HashTable, Queue and Stack
+    pos_state.py          Product index, order queue and undo stacks built on them
     csv_utils.py          CSV import and export helpers
     activity.py           Activity log recording
     routes/
@@ -37,6 +41,8 @@ pet-coffee-shop/
   scripts/
     setup.py              Creates a fresh database with seed data
     backup_db.py          Backup, verify and restore the database
+    make_demo_data.py     Builds the sample-data CSVs and ZIP for demos
+  sample-data/            Demo records to import for presentations
   petcoffeeshop.db        Live SQLite database, created by setup.py
   backups/                Dated database backups, created by backup_db.py
   logs/                   Private application log file
@@ -44,7 +50,9 @@ pet-coffee-shop/
 
 ## Features
 
-- Orders: Completed / Cancelled status, filter and search on Recent Orders, status reflected on Dashboard.
+- Orders: Queued / Completed / Cancelled status with separate Queued orders and Order history pages, plus filter and search.
+- Order queue: queued orders show their place in line, Complete next in line serves the front of the queue, and Undo last change reverses the most recent status update.
+- POS: cart has an Undo button that restores the cart to how it was before the last change.
 - Inventory: add a product picture (JPG/PNG/WebP, max 2 MB), change picture later, thumbnails in Inventory and POS.
 - Import and export:
   - One table as a separate CSV file: Products, Services, Orders, Appointments

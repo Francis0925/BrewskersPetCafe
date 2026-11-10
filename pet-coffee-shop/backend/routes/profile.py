@@ -6,9 +6,10 @@ import datetime
 from flask import jsonify, redirect, render_template, request
 
 from backend.auth import app, change_password, connect_db, verify_password
-from backend.config import LANDING_PAGE, LOW_STOCK_LIMIT
+from backend.config import LANDING_PAGE
 from backend.helpers import query
 from backend.permissions import current_user, login_required
+from backend.settings import get_store_settings
 
 
 @app.context_processor
@@ -52,7 +53,7 @@ def sidebar_summary():
              FROM products
             WHERE stock <= ?
               AND status != 'hidden'""",
-        (LOW_STOCK_LIMIT,),
+        (get_store_settings().low_stock_limit,),
         one=True,
         default={"n": 0},
     )["n"]

@@ -4,141 +4,163 @@
 {% block page %}
 <main>
   {{ ph.page_header(
-       title    = "Import & export",
-       subtitle = "Move Brewskers records through CSV files safely.",
+       eyebrow  = "Administration",
+       title    = "Data management",
+       subtitle = "Import, export and maintain every Brewskers record.",
        action   = '<a class="link" href="/admin">‹ Back to administration</a>'
   ) }}
 
-  <div class="data-toolbar">
-    <div>
-      <span class="eyebrow">Data tools</span>
-      <h2>Backup, restore, and transfer records</h2>
-      <p>
-        Export one table as a separate CSV, all data as separate CSV files in a ZIP,
-        all data as one SQL file, or all data as one database file.
-        Import a ZIP of CSVs or restore a database file.
-      </p>
+  <div class="grid3 mini data-overview-grid">
+    <div class="stat">
+      <small>Products</small>
+      <div class="n">{{ counts.products }}</div>
+      <p>Menu items and pet treats</p>
     </div>
 
-    <span class="badge muted">Administrator only</span>
+    <div class="stat">
+      <small>Services</small>
+      <div class="n">{{ counts.services }}</div>
+      <p>Grooming and vet services</p>
+    </div>
+
+    <div class="stat">
+      <small>Orders</small>
+      <div class="n">{{ counts.orders }}</div>
+      <p>{{ counts.order_items }} order lines</p>
+    </div>
+
+    <div class="stat">
+      <small>Appointments</small>
+      <div class="n">{{ counts.appointments }}</div>
+      <p>Booked pet visits</p>
+    </div>
+
+    <div class="stat">
+      <small>Staff accounts</small>
+      <div class="n">{{ counts.users }}</div>
+      <p>Login accounts on this system</p>
+    </div>
+
+    <div class="stat">
+      <small>Activity events</small>
+      <div class="n">{{ counts.activity_log }}</div>
+      <p>Recorded staff actions</p>
+    </div>
   </div>
 
-  <div class="panel data-panel" style="margin-bottom:24px">
-    <div class="panel-head">
-      <div>
-        <span class="eyebrow">Export all</span>
-        <h2>All data in one download</h2>
-      </div>
-      <span class="data-panel__hint">CSV = separate files in ZIP · SQL/DB = one file</span>
-    </div>
+  <div class="data-overview">
+    <span>
+      <b>Database</b> {{ (db_size / 1024)|round(1) }} KB
+    </span>
+
+    <span>
+      <b>Backups</b>
+      {{ backup_count }} file{{ '' if backup_count == 1 else 's' }} in backups/
+    </span>
+
+    {% if last_backup %}
+      <span>
+        <b>Latest</b> {{ last_backup }}
+      </span>
+    {% endif %}
+
+    <a class="link" href="/admin/settings">Manage backups</a>
+  </div>
+
+  <div class="panel-head section-head">
+    <h2>Export</h2>
+
+    <small>Downloads never contain passwords or sessions</small>
+  </div>
+
+  <div class="panel export-panel">
+    <div class="export-subhead">Everything in one download</div>
+
     <div class="export-list">
       <div class="export-row">
-        <div class="export-row__content"><h3>All data as CSV ZIP</h3><p>products.csv, services.csv, orders.csv, order_items.csv, appointments.csv, store_profile.csv as separate files in one ZIP. Passwords and sessions are excluded.</p></div>
+        <div class="export-row__content">
+          <h3>All data as CSV ZIP</h3>
+          <p>products.csv, services.csv, orders.csv, order_items.csv, appointments.csv and store_profile.csv as separate files in one ZIP.</p>
+        </div>
         <a class="btn ghost small" href="/api/admin/export/all.zip">Download ZIP</a>
       </div>
+
       <div class="export-row">
-        <div class="export-row__content"><h3>All data as SQL</h3><p>One .sql file with schema and data. Admin only, do not share publicly.</p></div>
+        <div class="export-row__content">
+          <h3>All data as SQL</h3>
+          <p>One .sql file with schema and data. Admin only, do not share publicly.</p>
+        </div>
         <a class="btn ghost small" href="/api/admin/export/all.sql">Download SQL</a>
       </div>
+
       <div class="export-row">
-        <div class="export-row__content"><h3>All data as database</h3><p>One .db file made with the SQLite backup API. Use Import database below to restore it.</p></div>
+        <div class="export-row__content">
+          <h3>All data as database</h3>
+          <p>One .db file made with the SQLite backup API. Restore it with the restore tool below.</p>
+        </div>
         <a class="btn ghost small" href="/api/admin/export/all.db">Download DB</a>
       </div>
     </div>
+
+    <div class="export-subhead">One table as CSV</div>
+
+    <div class="export-list">
+      {% for export_type, export_label in exports.items() %}
+        <div class="export-row">
+          <div class="export-row__content">
+            <h3>{{ export_label }}</h3>
+            <p>
+              {% if export_type == "products" %}
+                Product names, categories, prices, stock and picture paths.
+              {% elif export_type == "services" %}
+                Service names, prices, durations, and availability.
+              {% elif export_type == "orders" %}
+                Order numbers, customers, totals, payment and status.
+              {% else %}
+                Pet bookings with owner, phone, service, date, time and status.
+              {% endif %}
+            </p>
+          </div>
+
+          <a class="btn ghost small" href="/api/admin/export/{{ export_type }}">
+            <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v12M7 10l5 5 5-5" />
+              <path d="M5 20h14" />
+            </svg>
+
+            Download
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="safe-note">
+      <div class="safe-note__icon" aria-hidden="true">✓</div>
+
+      <div>
+        <h3>Safe exports</h3>
+        <p>
+          Password hashes, session tokens, remember tokens and password
+          reset codes are never included in any download.
+        </p>
+      </div>
+    </div>
   </div>
 
-  <div class="cols even data-tools-grid">
-    <section class="panel data-panel">
+  <div class="panel-head section-head">
+    <h2>Import and restore</h2>
+
+    <small>Every import is previewed before anything is written</small>
+  </div>
+
+  <div class="import-grid">
+    <section class="panel import-card">
       <div class="panel-head">
         <div>
-          <span class="eyebrow">Export</span>
-          <h2>Download records</h2>
-        </div>
-
-        <span class="data-panel__hint">CSV format</span>
-      </div>
-
-      <p class="data-panel__intro">
-        Download a copy of your current records for backup or editing.
-      </p>
-
-      <div class="export-list">
-        {% for export_type, export_label in exports.items() %}
-          <div class="export-row">
-            <div class="export-row__icon" aria-hidden="true">
-              {% if export_type == "products" %}
-                <svg viewBox="0 0 24 24">
-                  <path d="M4 7h16v13H4z" />
-                  <path d="M8 7V4h8v3M4 12h16M10 12v2h4v-2" />
-                </svg>
-              {% else %}
-                <svg viewBox="0 0 24 24">
-                  <path d="M8 3h8l4 4v14H4V3z" />
-                  <path d="M8 3v5h8V3M8 12h8M8 16h5" />
-                </svg>
-              {% endif %}
-            </div>
-
-            <div class="export-row__content">
-              <h3>{{ export_label }}</h3>
-              <p>
-                {% if export_type == "products" %}
-                  Product names, categories, prices, stock and picture paths.
-                {% elif export_type == "services" %}
-                  Service names, prices, durations, and availability.
-                {% elif export_type == "orders" %}
-                  Order numbers, customers, totals, payment and Completed/Cancelled status.
-                {% else %}
-                  Pet bookings with owner, phone, service, date, time and status.
-                {% endif %}
-              </p>
-            </div>
-
-            <a
-              class="btn ghost small"
-              href="/api/admin/export/{{ export_type }}"
-            >
-              <svg
-                class="button-icon"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path d="M12 3v12M7 10l5 5 5-5" />
-                <path d="M5 20h14" />
-              </svg>
-
-              Download
-            </a>
-          </div>
-        {% endfor %}
-      </div>
-
-      <div class="safe-note">
-        <div class="safe-note__icon" aria-hidden="true">✓</div>
-
-        <div>
-          <h3>Safe exports</h3>
-          <p>
-            Password hashes, session tokens, remember tokens, and
-            password-reset codes are never included.
-          </p>
+          <span class="eyebrow">CSV</span>
+          <h2>Import one table</h2>
         </div>
       </div>
-    </section>
-
-    <section class="panel data-panel">
-      <div class="panel-head">
-        <div>
-          <span class="eyebrow">Import</span>
-          <h2>Add records from CSV</h2>
-        </div>
-
-        <span class="data-panel__hint">Preview first</span>
-      </div>
-
-      <p class="data-panel__intro">
-        Every row is validated before anything is written to the database.
-      </p>
 
       <form
         id="import-form"
@@ -171,10 +193,7 @@
             />
 
             <label class="file-picker__button" for="import-file">
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 16V4M7 9l5-5 5 5" />
                 <path d="M5 20h14" />
               </svg>
@@ -189,16 +208,14 @@
           </div>
         </div>
 
-        <div class="import-actions">
-          <button
-            class="btn wide"
-            id="preview-import-button"
-            type="submit"
-          >
-            <span class="button-label">Preview import</span>
-            <span class="button-loading">Checking file…</span>
-          </button>
-        </div>
+        <button
+          class="btn wide"
+          id="preview-import-button"
+          type="submit"
+        >
+          <span class="button-label">Preview import</span>
+          <span class="button-loading">Checking file…</span>
+        </button>
       </form>
 
       <div
@@ -232,6 +249,94 @@
         </button>
       </div>
     </section>
+
+    <section class="panel import-card">
+      <div class="panel-head">
+        <div>
+          <span class="eyebrow">ZIP</span>
+          <h2>Import all tables</h2>
+        </div>
+      </div>
+
+      <form id="import-all-form" onsubmit="previewAllImport(event)">
+        <div class="file-picker">
+          <input id="import-all-file" name="file" type="file" accept=".zip" required />
+
+          <label class="file-picker__button" for="import-all-file">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 16V4M7 9l5-5 5 5" />
+              <path d="M5 20h14" />
+            </svg>
+
+            Choose file
+          </label>
+
+          <div class="file-picker__details">
+            <strong id="import-all-file-name">No file selected</strong>
+            <small id="import-all-file-size">ZIP files only</small>
+          </div>
+        </div>
+
+        <button class="btn wide" type="submit" style="margin-top:16px">Preview ZIP import</button>
+      </form>
+
+      <div id="import-all-preview" class="import-preview" hidden>
+        <div class="preview-summary">
+          <div class="preview-summary__icon" aria-hidden="true">✓</div>
+
+          <div class="preview-summary__content">
+            <p class="preview-summary__title">ZIP import preview</p>
+            <p id="import-all-summary"></p>
+          </div>
+        </div>
+
+        <div id="import-all-errors" class="import-errors"></div>
+
+        <button class="btn wide" id="confirm-all-button" type="button" onclick="confirmAllImport()" hidden>Confirm ZIP import</button>
+      </div>
+
+      <p class="import-card__note">
+        Use the ZIP made by Export all CSV. Products and services update by
+        name, orders match by order number, appointments are added as new
+        bookings.
+      </p>
+    </section>
+
+    <section class="panel import-card">
+      <div class="panel-head">
+        <div>
+          <span class="eyebrow">Restore</span>
+          <h2>Restore database</h2>
+        </div>
+      </div>
+
+      <form onsubmit="restoreDatabase(event)">
+        <div class="file-picker">
+          <input id="restore-file" name="file" type="file" accept=".db,.sql" required />
+
+          <label class="file-picker__button" for="restore-file">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 16V4M7 9l5-5 5 5" />
+              <path d="M5 20h14" />
+            </svg>
+
+            Choose file
+          </label>
+
+          <div class="file-picker__details">
+            <strong id="restore-file-name">No file selected</strong>
+            <small id="restore-file-size">.db or .sql files</small>
+          </div>
+        </div>
+
+        <button class="btn wide" type="submit" style="margin-top:16px">Restore database</button>
+      </form>
+
+      <p class="import-card__note">
+        Upload a .db or .sql file from Export all. The current database is
+        saved to backups/ first, so nothing is lost.
+      </p>
+    </section>
   </div>
 
   <div class="csv-format-note">
@@ -241,35 +346,383 @@
     <span>All ZIP: separate CSV files for products, services, orders, order_items, appointments, store_profile</span>
   </div>
 
-  <div class="cols even" style="margin-top:24px">
-    <section class="panel data-panel">
-      <div class="panel-head"><div><span class="eyebrow">Import all</span><h2>Import ZIP of CSVs</h2></div><span class="data-panel__hint">Preview first</span></div>
-      <p class="data-panel__intro">Upload the ZIP made by Export All CSV. Products and services are updated by name, orders by order number, appointments are added as new bookings.</p>
-      <form id="import-all-form" onsubmit="previewAllImport(event)">
-        <div class="form-group">
-          <label for="import-all-file">ZIP file</label>
-          <input id="import-all-file" name="file" type="file" accept=".zip" required />
-        </div>
-        <button class="btn wide" type="submit">Preview ZIP import</button>
-      </form>
-      <div id="import-all-preview" hidden>
-        <p id="import-all-summary"></p>
-        <div id="import-all-errors"></div>
-        <button class="btn wide" id="confirm-all-button" type="button" onclick="confirmAllImport()" hidden>Confirm ZIP import</button>
+  <div class="panel data-management" id="maintenance">
+    <div class="panel-head">
+      <div>
+        <span class="eyebrow">Maintenance</span>
+        <h2>Data maintenance</h2>
       </div>
-    </section>
 
-    <section class="panel data-panel">
-      <div class="panel-head"><div><span class="eyebrow">Restore database</span><h2>Restore .db or .sql</h2></div><span class="data-panel__hint">Backs up current DB first</span></div>
-      <p class="data-panel__intro">Upload a .db file from Export All DB or a .sql file from Export All SQL. Your current database is saved to backups/ before replacing.</p>
-      <form onsubmit="restoreDatabase(event)">
-        <div class="form-group">
-          <label for="restore-file">Database or SQL file</label>
-          <input id="restore-file" name="file" type="file" accept=".db,.sql" required />
+      <span class="badge low">Destructive actions</span>
+    </div>
+
+    <div class="data-management__notice">
+      <div class="data-management__notice-icon" aria-hidden="true">
+        !
+      </div>
+
+      <div>
+        <h3>Use these actions carefully</h3>
+
+        <p>
+          These operations affect business records. Staff accounts and
+          active sessions are preserved. Consider creating a backup first.
+        </p>
+      </div>
+    </div>
+
+    <div class="data-management__groups">
+      <section class="data-group">
+        <h3 class="data-group__title">Inventory and catalog</h3>
+
+        <div class="data-management__grid">
+          <div class="data-action">
+            <div class="data-action__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 7h16v13H4z" />
+                <path d="M8 7V4h8v3M4 12h16" />
+              </svg>
+            </div>
+
+            <div class="data-action__content">
+              <h3>Reset all product stock</h3>
+
+              <p>
+                Set the stock of every product to zero without deleting
+                product records.
+              </p>
+            </div>
+
+            <button
+              class="btn danger small"
+              type="button"
+              onclick="resetData(
+                'reset_stock',
+                'reset all product stock to zero',
+                'Every product keeps its record, but its stock count will be set to zero.'
+              )"
+            >
+              Reset stock
+            </button>
+          </div>
+
+          <div class="data-action">
+            <div class="data-action__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M3 12s4-7 11-7 11 7 11 7-4 7-11 7S3 12 3 12z" />
+                <circle cx="12" cy="12" r="3" />
+                <path d="M4 4l16 16" />
+              </svg>
+            </div>
+
+            <div class="data-action__content">
+              <h3>Deactivate all products</h3>
+
+              <p>
+                Make all products unavailable for POS transactions while
+                keeping their records.
+              </p>
+            </div>
+
+            <button
+              class="btn danger small"
+              type="button"
+              onclick="resetData(
+                'deactivate_products',
+                'deactivate all products from inventory and the POS',
+                'Every product keeps its record, but it will no longer be sold.'
+              )"
+            >
+              Deactivate products
+            </button>
+          </div>
+
+          <div class="data-action">
+            <div class="data-action__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M8 3h8l4 4v14H4V3z" />
+                <path d="M8 3v5h8V3M8 12h8M8 16h5" />
+              </svg>
+            </div>
+
+            <div class="data-action__content">
+              <h3>Deactivate all services</h3>
+
+              <p>
+                Make every pet care service unavailable for new bookings
+                without deleting it.
+              </p>
+            </div>
+
+            <button
+              class="btn danger small"
+              type="button"
+              onclick="resetData(
+                'deactivate_services',
+                'deactivate all services from booking',
+                'Every service keeps its record, but it will no longer take new bookings.'
+              )"
+            >
+              Deactivate services
+            </button>
+          </div>
         </div>
-        <button class="btn wide" type="submit">Restore database</button>
-      </form>
-    </section>
+      </section>
+
+      <section class="data-group">
+        <h3 class="data-group__title">Business records</h3>
+
+        <div class="data-management__grid">
+          <div class="data-action data-action--destructive">
+            <div class="data-action__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="5" width="18" height="16" rx="2" />
+                <path d="M8 3v4M16 3v4M3 10h18" />
+                <path d="M9 14l6 6M15 14l-6 6" />
+              </svg>
+            </div>
+
+            <div class="data-action__content">
+              <h3>Clear appointment history</h3>
+
+              <p>
+                Permanently remove all appointment records and scheduled
+                guest information.
+              </p>
+            </div>
+
+            <button
+              class="btn danger small"
+              type="button"
+              onclick="resetData(
+                'clear_appointments',
+                'permanently delete all appointments',
+                'All appointment records and scheduled guest information will be permanently deleted.'
+              )"
+            >
+              Clear appointments
+            </button>
+          </div>
+
+          <div class="data-action data-action--destructive">
+            <div class="data-action__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 3" />
+              </svg>
+            </div>
+
+            <div class="data-action__content">
+              <h3>Clear cancelled appointments</h3>
+
+              <p>
+                Permanently remove cancelled appointment records.
+              </p>
+            </div>
+
+            <button
+              class="btn danger small"
+              type="button"
+              onclick="resetData(
+                'clear_cancelled_appointments',
+                'permanently delete all cancelled appointments',
+                'Only cancelled appointment records will be permanently deleted.'
+              )"
+            >
+              Clear cancelled
+            </button>
+          </div>
+
+          <div class="data-action data-action--destructive">
+            <div class="data-action__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M8 12l2.5 2.5L16 9" />
+              </svg>
+            </div>
+
+            <div class="data-action__content">
+              <h3>Clear completed appointments</h3>
+
+              <p>
+                Permanently remove completed appointment records.
+              </p>
+            </div>
+
+            <button
+              class="btn danger small"
+              type="button"
+              onclick="resetData(
+                'clear_completed_appointments',
+                'permanently delete all completed appointments',
+                'Only completed appointment records will be permanently deleted.'
+              )"
+            >
+              Clear completed
+            </button>
+          </div>
+
+          <div class="data-action data-action--destructive">
+            <div class="data-action__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 5h16v16H4z" />
+                <path d="M8 9h8M8 13h8M8 17h5" />
+                <path d="M4 5l16 16" />
+              </svg>
+            </div>
+
+            <div class="data-action__content">
+              <h3>Clear order history</h3>
+
+              <p>
+                Permanently remove all orders, order items, sales totals,
+                and receipt history.
+              </p>
+            </div>
+
+            <button
+              class="btn danger small"
+              type="button"
+              onclick="resetData(
+                'clear_orders',
+                'permanently clear all order and receipt history',
+                'All orders, order items, sales totals, and receipt history will be permanently deleted.'
+              )"
+            >
+              Clear orders
+            </button>
+          </div>
+
+          <div class="data-action data-action--destructive">
+            <div class="data-action__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" />
+              </svg>
+            </div>
+
+            <div class="data-action__content">
+              <h3>Clear customer records</h3>
+
+              <p>
+                Remove customer names from orders without deleting the
+                orders.
+              </p>
+            </div>
+
+            <button
+              class="btn danger small"
+              type="button"
+              onclick="resetData(
+                'clear_customers',
+                'remove customer names from orders while keeping the orders',
+                'Customer names on orders will be removed, but the orders and sales totals will stay for reporting.'
+              )"
+            >
+              Clear customers
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="data-group">
+        <h3 class="data-group__title">System activity</h3>
+
+        <div class="data-management__grid">
+          <div class="data-action data-action--destructive">
+            <div class="data-action__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                <path d="M3 3v5h5M12 7v5l3 3" />
+              </svg>
+            </div>
+
+            <div class="data-action__content">
+              <h3>Clear activity logs</h3>
+
+              <p>
+                Permanently remove all activity log entries.
+              </p>
+            </div>
+
+            <button
+              class="btn danger small"
+              type="button"
+              onclick="resetData(
+                'clear_activity',
+                'permanently clear all activity log entries',
+                'All activity log entries will be permanently deleted.'
+              )"
+            >
+              Clear activity
+            </button>
+          </div>
+
+          <div class="data-action data-action--destructive">
+            <div class="data-action__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+
+            <div class="data-action__content">
+              <h3>Clear login history</h3>
+
+              <p>
+                Remove historical login records without affecting active
+                sessions.
+              </p>
+            </div>
+
+            <button
+              class="btn danger small"
+              type="button"
+              onclick="resetData(
+                'clear_logins',
+                'permanently clear login history entries',
+                'Only historical login records will be removed. Active sessions and staff accounts will not be affected.'
+              )"
+            >
+              Clear logins
+            </button>
+          </div>
+
+          <div class="data-action data-action--destructive">
+            <div class="data-action__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M3 8h18M7 8V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v3M3 8l2 12h14l2-12" />
+              </svg>
+            </div>
+
+            <div class="data-action__content">
+              <h3>Clear archived records</h3>
+
+              <p>
+                Permanently remove archived records.
+              </p>
+            </div>
+
+            <button
+              class="btn danger small"
+              type="button"
+              onclick="resetData(
+                'clear_archived',
+                'permanently remove archived records',
+                'Archived product records and their order item history will be permanently removed.'
+              )"
+            >
+              Clear archived
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <p class="data-management__footnote">
+      For permanent removal of archived products or services, export your
+      data first and then use the import tool with the required records.
+    </p>
   </div>
 </main>
 {% endblock %}
@@ -606,9 +1059,34 @@ async function confirmImport() {
 
 let pendingAllFile = null;
 
+const importAllFileInput =
+  document.getElementById("import-all-file");
+
+importAllFileInput.addEventListener("change", () => {
+  const file = importAllFileInput.files[0];
+
+  importAllFileInput.closest(".file-picker").classList.toggle(
+    "has-file",
+    Boolean(file)
+  );
+
+  document.getElementById("import-all-file-name").textContent =
+    file ? file.name : "No file selected";
+
+  document.getElementById("import-all-file-size").textContent =
+    file ? `${file.size.toLocaleString()} bytes` : "ZIP files only";
+
+  const previewPanel = document.getElementById("import-all-preview");
+  previewPanel.hidden = true;
+  document.getElementById("import-all-errors").innerHTML = "";
+  document.getElementById("confirm-all-button").hidden = true;
+
+  pendingAllFile = null;
+});
+
 async function previewAllImport(event) {
   event.preventDefault();
-  const file = document.getElementById("import-all-file").files[0];
+  const file = importAllFileInput.files[0];
   if (!file) { toast("Choose a ZIP file", "error"); return; }
   const formData = new FormData();
   formData.append("file", file);
@@ -634,13 +1112,32 @@ async function confirmAllImport() {
   formData.append("file", pendingAllFile);
   const result = await postForm("/api/admin/import/all/confirm", formData);
   if (!result.ok) { toast(result.error || "Could not import ZIP", "error"); return; }
-  toast(`Imported: ${JSON.stringify(result.imported)}`, "success");
+  const parts = Object.entries(result.imported || {}).map(([table, count]) => `${table}: ${count}`);
+  toast(`Imported ${parts.join(", ")}`, "success");
   setTimeout(() => location.reload(), 700);
 }
 
+const restoreFileInput =
+  document.getElementById("restore-file");
+
+restoreFileInput.addEventListener("change", () => {
+  const file = restoreFileInput.files[0];
+
+  restoreFileInput.closest(".file-picker").classList.toggle(
+    "has-file",
+    Boolean(file)
+  );
+
+  document.getElementById("restore-file-name").textContent =
+    file ? file.name : "No file selected";
+
+  document.getElementById("restore-file-size").textContent =
+    file ? `${file.size.toLocaleString()} bytes` : ".db or .sql files";
+});
+
 async function restoreDatabase(event) {
   event.preventDefault();
-  const file = document.getElementById("restore-file").files[0];
+  const file = restoreFileInput.files[0];
   if (!file) { toast("Choose a .db or .sql file", "error"); return; }
   if (!confirm("Restore this database? Your current database will be backed up first.")) return;
   const formData = new FormData();
@@ -649,6 +1146,55 @@ async function restoreDatabase(event) {
   if (!result.ok) { toast(result.error || "Could not restore database", "error"); return; }
   toast(`Restored. Previous DB saved as ${result.auto_backup}`, "success");
   setTimeout(() => location.reload(), 700);
+}
+
+async function resetData(action, description, details) {
+  const confirmation = prompt(
+    `Warning: this will ${description}.\n\n` +
+    (details ? `${details}\n\n` : "") +
+    "This action cannot be undone.\n" +
+    "Staff accounts and active sessions will not be affected.\n\n" +
+    "Type DELETE to continue."
+  );
+
+  if (confirmation === null) return;
+
+  if (confirmation.trim().toUpperCase() !== "DELETE") {
+    toast(
+      "Type DELETE to confirm",
+      "error"
+    );
+
+    return;
+  }
+
+  const result = await api(
+    "/api/admin/reset-data",
+    {
+      action,
+      confirmation: confirmation.trim().toUpperCase()
+    }
+  );
+
+  if (!result.ok) {
+    toast(
+      result.error ||
+      "Could not clear the selected data",
+      "error"
+    );
+
+    return;
+  }
+
+  toast(
+    result.message ||
+    "Data cleared successfully",
+    "success"
+  );
+
+  setTimeout(() => {
+    location.reload();
+  }, 700);
 }
 </script>
 {% endblock %}

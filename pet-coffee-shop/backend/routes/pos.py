@@ -7,19 +7,35 @@ import decimal
 from flask import jsonify, render_template, request
 
 from backend.auth import app, connect_db
-from backend.config import ORDER_STATUSES, TAX_RATE
+from backend.config import ORDER_STATUSES
+from backend.errors import InsufficientPaymentError, OutOfStockError
 from backend.helpers import query, run
+from backend.models import Cart, Product
 from backend.permissions import require
+from backend.pos_state import order_queue, product_index, status_undo
+from backend.settings import get_store_settings
 
 
 @app.get("/pos")
 @require("pos.use")
 def pos(user):
-    products = query(
-        "SELECT * FROM products WHERE status = 'available' AND stock > 0 ORDER BY category, name"
-    )
+    # The product grid comes from the hash table, and every row becomes a
+    # Product object that owns its own rules. The template still receives
+    # plain dictionaries from to_dict(). The tax rate and low stock
+    # threshold are injected so the cart preview and the low stock badges
+    # always match what the server will charge and flag.
+    settings = get_store_settings()
+    products = [Product.from_row(row).to_dict() for row in product_index.sellable()]
 
-    return render_template("pos.html", user=user, active="pos", title="Point of sale", products=products)
+    return render_template(
+        "pos.html",
+        user=user,
+        active="pos",
+        title="Point of sale",
+        products=products,
+        tax_rate_percent=settings.tax_rate_percent,
+        low_stock_limit=settings.low_stock_limit,
+    )
 
 
 @app.get("/orders")
@@ -62,6 +78,12 @@ def _render_orders(user, page):
 
     recent_orders = query(sql, tuple(args))
 
+    # The queued list is shown in queue order (oldest first) with a place in line.
+    if status_filter == "queued":
+        for order in recent_orders:
+            order["queue_position"] = order_queue.position(order["order_id"])
+        recent_orders.sort(key=lambda o: (o["queue_position"] is None, o["queue_position"] or 0))
+
     counts = query(
         """SELECT COALESCE(status, 'completed') AS status, COUNT(*) AS n
              FROM orders GROUP BY COALESCE(status, 'completed')"""
@@ -83,21 +105,34 @@ def _render_orders(user, page):
     )
 
 
-@app.post("/api/orders/<int:order_id>/status")
-@require("orders.read")
-def set_order_status(user, order_id):
-    """Move an order between Queued, Completed and Cancelled."""
-    data = request.get_json(force=True) or {}
-    status = (data.get("status") or "").strip().lower()
+def _apply_status(user, order_id, status, record_undo=True):
+    """Change an order's status and keep the Queue and undo Stack in step.
 
-    if status not in ORDER_STATUSES:
-        return jsonify(ok=False, error="Unknown status"), 400
-
-    existing = query("SELECT order_id FROM orders WHERE order_id = ?", (order_id,), one=True)
+    Returns (previous_status, error_message, http_code).
+    """
+    existing = query("SELECT order_id, order_no, customer_name, order_date, COALESCE(status, 'completed') AS status "
+                     "FROM orders WHERE order_id = ?", (order_id,), one=True)
     if not existing:
-        return jsonify(ok=False, error="Order not found"), 404
+        return None, "Order not found", 404
+
+    previous = existing["status"]
 
     run("UPDATE orders SET status = ? WHERE order_id = ?", (status, order_id))
+
+    # Queue: leaving "queued" removes the order from the line, entering it joins the back.
+    if previous == "queued" and status != "queued":
+        order_queue.remove(order_id)
+    elif previous != "queued" and status == "queued":
+        order_queue.enqueue({
+            "order_id": existing["order_id"],
+            "order_no": existing["order_no"],
+            "customer_name": existing["customer_name"],
+            "order_date": existing["order_date"],
+        })
+
+    # Stack: remember what to go back to.
+    if record_undo and previous != status:
+        status_undo.push(user["user_id"], order_id, previous)
 
     from backend.activity import record_activity
 
@@ -109,7 +144,68 @@ def set_order_status(user, order_id):
         entity_id=order_id,
     )
 
-    return jsonify(ok=True, status=status)
+    return previous, None, 200
+
+
+@app.post("/api/orders/<int:order_id>/status")
+@require("orders.read")
+def set_order_status(user, order_id):
+    """Move an order between Queued, Completed and Cancelled."""
+    data = request.get_json(force=True) or {}
+    status = (data.get("status") or "").strip().lower()
+
+    if status not in ORDER_STATUSES:
+        return jsonify(ok=False, error="Unknown status"), 400
+
+    _previous, error, code = _apply_status(user, order_id, status)
+    if error:
+        return jsonify(ok=False, error=error), code
+
+    return jsonify(ok=True, status=status, can_undo=status_undo.depth(user["user_id"]) > 0)
+
+
+@app.post("/api/orders/next/complete")
+@require("orders.read")
+def complete_next_order(user):
+    """Dequeue the order at the front of the line and mark it completed."""
+    order = order_queue.dequeue()
+
+    if order is None:
+        return jsonify(ok=False, error="No queued orders"), 404
+
+    # Already dequeued, so only the database and the undo stack need updating.
+    run("UPDATE orders SET status = 'completed' WHERE order_id = ?", (order["order_id"],))
+    status_undo.push(user["user_id"], order["order_id"], "queued")
+
+    from backend.activity import record_activity
+
+    record_activity(
+        user_id=user["user_id"],
+        action="order_status_changed",
+        description=f"Set order {order['order_id']} to completed",
+        entity_type="order",
+        entity_id=order["order_id"],
+    )
+
+    return jsonify(ok=True, order_no=order["order_no"], status="completed")
+
+
+@app.post("/api/orders/undo")
+@require("orders.read")
+def undo_order_status(user):
+    """Pop the last status change this user made and put the order back."""
+    entry = status_undo.pop(user["user_id"])
+
+    if entry is None:
+        return jsonify(ok=False, error="Nothing to undo"), 404
+
+    order_id, previous_status = entry
+    _prev, error, code = _apply_status(user, order_id, previous_status, record_undo=False)
+
+    if error:
+        return jsonify(ok=False, error=error), code
+
+    return jsonify(ok=True, order_id=order_id, status=previous_status)
 
 
 @app.get("/api/orders/<int:order_id>/receipt")
@@ -153,6 +249,7 @@ def order_receipt(user, order_id):
             "status": order.get("status") or "completed",
             "subtotal": subtotal,
             "tax": tax,
+            "tax_rate": order.get("tax_rate"),
             "total": float(order["total_amount"]),
             "amount_paid": order["amount_paid"],
             "change_amount": order["change_amount"],
@@ -188,8 +285,12 @@ def create_order(user):
     cursor = db.cursor()
 
     try:
-        subtotal = decimal.Decimal("0")
-        order_lines = []
+        # The Cart object owns the running totals, and every product row
+        # becomes a Product object that guards its own availability and
+        # stock. The tax rate comes from the store settings, so the charge
+        # always matches what administrators configured.
+        settings = get_store_settings()
+        cart = Cart(tax_rate=settings.tax_rate_fraction)
 
         for item in cart_items:
             try:
@@ -201,22 +302,26 @@ def create_order(user):
             if product_id < 1 or quantity < 1:
                 return jsonify(ok=False, error="Invalid cart quantity"), 400
 
-            cursor.execute("SELECT * FROM products WHERE product_id = ?", (product_id,))
-            product = cursor.fetchone()
+            # Hash table lookup instead of a query per cart line, then the
+            # row becomes a Product object that guards its own rules.
+            row = product_index.get(product_id)
 
-            if not product or product["status"] != "available":
+            if not row:
                 return jsonify(ok=False, error="A product in the cart is unavailable"), 400
 
-            if product["stock"] < quantity:
-                return jsonify(ok=False, error=f"Not enough stock for {product['name']}"), 409
+            product = Product.from_row(row)
 
-            price = decimal.Decimal(str(product["price"]))
-            subtotal += price * quantity
-            order_lines.append((product["product_id"], product["name"], quantity, price))
+            if not product.is_available():
+                return jsonify(ok=False, error="A product in the cart is unavailable"), 400
 
-        subtotal = subtotal.quantize(cents, rounding=decimal.ROUND_HALF_UP)
-        order_total = (subtotal * (1 + TAX_RATE)).quantize(cents, rounding=decimal.ROUND_HALF_UP)
-        tax = order_total - subtotal
+            # Raises OutOfStockError when the shelf cannot cover the line.
+            product.reduce_stock(quantity)
+
+            cart.add(product, quantity)
+
+        subtotal = cart.subtotal
+        order_total = cart.total
+        tax = cart.tax
 
         if method == "cash":
             try:
@@ -227,7 +332,7 @@ def create_order(user):
                 return jsonify(ok=False, error="Enter a valid cash amount"), 400
 
             if amount_paid < order_total:
-                return jsonify(ok=False, error="Amount tendered is less than the total"), 400
+                raise InsufficientPaymentError(order_total, amount_paid)
         else:
             amount_paid = order_total
 
@@ -238,8 +343,9 @@ def create_order(user):
         cursor.execute(
             """INSERT INTO orders
                  (order_no, customer_name, total_amount,
-                  payment_method, amount_paid, change_amount, created_by, status)
-               VALUES (?, ?, ?, ?, ?, ?, ?, 'queued')""",
+                  payment_method, amount_paid, change_amount, created_by,
+                  status, tax_rate)
+               VALUES (?, ?, ?, ?, ?, ?, ?, 'queued', ?)""",
             (
                 order_no,
                 (data.get("customer_name") or "Walk-in").strip() or "Walk-in",
@@ -248,28 +354,40 @@ def create_order(user):
                 float(amount_paid),
                 float(change),
                 user["user_id"],
+                settings.tax_rate_percent,
             ),
         )
 
         order_id = cursor.lastrowid
 
-        for product_id, _name, quantity, price in order_lines:
+        for line in cart.lines:
             cursor.execute(
                 "INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)",
-                (order_id, product_id, quantity, float(price)),
+                (order_id, line.product.product_id, line.quantity, float(line.unit_price)),
             )
             cursor.execute(
                 """UPDATE products
                       SET stock = stock - ?
                     WHERE product_id = ?
                       AND stock >= ?""",
-                (quantity, product_id, quantity),
+                (line.quantity, line.product.product_id, line.quantity),
             )
 
             if cursor.rowcount != 1:
-                raise RuntimeError("Product stock changed during checkout")
+                # The shelf changed while the order was being saved.
+                raise OutOfStockError(line.product.name, line.quantity, 0)
 
         db.commit()
+
+        # Stock changed, so refresh the product table. The new order joins the
+        # back of the queue.
+        product_index.invalidate()
+        order_queue.enqueue({
+            "order_id": order_id,
+            "order_no": order_no,
+            "customer_name": (data.get("customer_name") or "Walk-in").strip() or "Walk-in",
+            "order_date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        })
 
         return jsonify(
             ok=True,
@@ -282,10 +400,16 @@ def create_order(user):
             paid=float(amount_paid),
             change=float(change),
             lines=[
-                {"name": name, "qty": quantity, "price": float(price)}
-                for _id, name, quantity, price in order_lines
+                {"name": line.product.name, "qty": line.quantity, "price": float(line.unit_price)}
+                for line in cart.lines
             ],
         )
+    except OutOfStockError as error:
+        db.rollback()
+        return jsonify(ok=False, error=f"Not enough stock for {error.name}"), 409
+    except InsufficientPaymentError:
+        db.rollback()
+        return jsonify(ok=False, error="Amount tendered is less than the total"), 400
     except Exception:
         db.rollback()
         app.logger.exception("Could not create order")

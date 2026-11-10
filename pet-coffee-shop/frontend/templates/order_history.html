@@ -24,11 +24,17 @@
           · {{ count_by_status.get('cancelled', 0) }} cancelled
         </small>
       </div>
-      <a class="link" href="/dashboard">Back to dashboard</a>
+      <div class="row-actions">
+        {% if page == 'queued' %}
+          <button class="btn small" type="button" onclick="completeNextOrder()" {% if not count_by_status.get('queued', 0) %}disabled{% endif %}>Complete next in line</button>
+        {% endif %}
+        <button class="btn ghost small" type="button" onclick="undoStatusChange()">Undo last change</button>
+        <a class="link" href="/dashboard">Back to dashboard</a>
+      </div>
     </div>
 
     <form method="get" action="{{ '/orders' if page == 'queued' else '/orders/history' }}" class="order-filters">
-      <input class="searchbar" name="q" value="{{ search }}" placeholder="Search order no or customer..." />
+      <input class="searchbar" id="order-search" name="q" value="{{ search }}" placeholder="Search customer name..." autocomplete="off" />
       <select name="status">
         <option value="">All statuses</option>
         <option value="queued" {% if status_filter == 'queued' %}selected{% endif %}>Queued</option>
@@ -43,6 +49,7 @@
       <table>
         <thead>
           <tr>
+            {% if status_filter == 'queued' %}<th>Line</th>{% endif %}
             <th>Order</th>
             <th>Customer</th>
             <th>Date</th>
@@ -56,6 +63,7 @@
         <tbody>
           {% for order in orders %}
             <tr>
+              {% if status_filter == 'queued' %}<td>#{{ order.queue_position or '—' }}</td>{% endif %}
               <td><b>{{ order.order_no }}</b></td>
               <td>{{ order.customer_name or "Walk-in" }}</td>
               <td>{{ order.order_date }}</td>
@@ -85,7 +93,7 @@
             </tr>
           {% else %}
             <tr>
-              <td colspan="8">
+              <td colspan="9">
                 <div class="empty">
                   {% if page == 'queued' %}
                     No queued orders. New POS orders will appear here until they are completed or cancelled.
@@ -107,6 +115,19 @@
 
 {% block script %}
 <script>
+const orderSearch = document.getElementById("order-search");
+
+// Block numbers in the search box (typing, pasting, dragging)
+orderSearch.addEventListener("keypress", (event) => {
+  if (/\d/.test(event.key)) event.preventDefault();
+});
+orderSearch.addEventListener("input", () => {
+  orderSearch.value = orderSearch.value.replace(/\d/g, "");
+});
+
+// Clean any number left over from an earlier search
+orderSearch.value = orderSearch.value.replace(/\d/g, "");
+
 function showSavedReceipt(receipt) {
   Receipt.show({
     orderNo: receipt.order_no,
@@ -123,7 +144,7 @@ function showSavedReceipt(receipt) {
     subtotal: receipt.subtotal,
     discount: receipt.discount,
     tax: receipt.tax,
-    taxLabel: "Tax (8%)",
+    taxLabel: `Tax (${receipt.tax_rate ?? 8}%)`,
     serviceCharge: receipt.service_charge,
     total: receipt.total,
     paid: receipt.amount_paid,
@@ -139,6 +160,27 @@ async function openSavedReceipt(orderId) {
     return;
   }
   showSavedReceipt(result.receipt);
+}
+
+async function completeNextOrder() {
+  if (!confirm("Complete the next order in line?")) return;
+  const result = await api("/api/orders/next/complete", {});
+  if (result.ok) {
+    toast(`${result.order_no} completed`, "success");
+    setTimeout(() => location.reload(), 500);
+  } else {
+    toast(result.error || "Could not complete the order", "error");
+  }
+}
+
+async function undoStatusChange() {
+  const result = await api("/api/orders/undo", {});
+  if (result.ok) {
+    toast(`Order restored to ${result.status}`, "success");
+    setTimeout(() => location.reload(), 500);
+  } else {
+    toast(result.error || "Nothing to undo", "error");
+  }
 }
 
 async function setOrderStatus(orderId, status, label) {

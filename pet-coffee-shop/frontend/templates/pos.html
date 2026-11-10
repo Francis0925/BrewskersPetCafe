@@ -17,7 +17,7 @@
     <input
       class="searchbar"
       id="search"
-      placeholder="Search by product name or number..."
+      placeholder="Search by product name..."
       autocomplete="off"
       inputmode="search"
     />
@@ -37,6 +37,16 @@
     <h2 class="serif">Current order</h2>
 
     <div class="order-actions">
+      <button
+        class="link"
+        id="undo-cart-button"
+        type="button"
+        title="Undo the last cart change"
+        disabled
+      >
+        Undo
+      </button>
+
       <button
         class="link"
         id="hold-order-button"
@@ -101,7 +111,7 @@
     </div>
 
     <div>
-      <span>Tax (8%)</span>
+      <span>Tax ({{ '%g'|format(tax_rate_percent) }}%)</span>
       <span id="tax-value">₱0.00</span>
     </div>
 
@@ -143,8 +153,56 @@
 {% block script %}
 <script>
   const products = {{ products|tojson }};
-  const TAX_RATE = 0.08;
+  // The store tax rate comes from the settings page, so the cart preview
+  // always matches what the server will charge at checkout.
+  const TAX_RATE = {{ tax_rate_percent }} / 100;
+  // The low stock threshold also comes from the settings page, so the
+  // Only N badges match what the dashboard and inventory flag.
+  const LOW_STOCK_LIMIT = {{ low_stock_limit }};
   const CASHIER_NAME = {{ user.username|tojson }};
+
+  // Array-based Stack for cart undo. Each entry is a snapshot of the cart before a change.
+  class Stack {
+    constructor(maxSize = 50) {
+      this.items = [];
+      this.maxSize = maxSize;
+    }
+    push(value) {
+      this.items.push(value);
+      if (this.items.length > this.maxSize) this.items.shift();
+    }
+    pop() {
+      return this.items.length ? this.items.pop() : undefined;
+    }
+    peek() {
+      return this.items[this.items.length - 1];
+    }
+    isEmpty() {
+      return this.items.length === 0;
+    }
+    clear() {
+      this.items = [];
+    }
+  }
+
+  const cartUndoStack = new Stack();
+
+  function rememberCart() {
+    cartUndoStack.push({ ...cart });
+    updateUndoButton();
+  }
+
+  function updateUndoButton() {
+    $("#undo-cart-button").disabled = cartUndoStack.isEmpty();
+  }
+
+  function undoCart() {
+    if (cartUndoStack.isEmpty()) return;
+    cart = cartUndoStack.pop();
+    drawCart();
+    updateUndoButton();
+    toast("Undid last cart change", "info");
+  }
 
   let cart = {};
   let selectedCategory = "All";
@@ -270,8 +328,7 @@
 
       const searchableText = [
         product.name,
-        product.category,
-        product.product_id
+        product.category
       ]
         .join(" ")
         .toLowerCase();
@@ -296,7 +353,7 @@
       .map((product) => {
         const outOfStock = product.stock <= 0;
         const lowStock =
-          product.stock > 0 && product.stock <= 5;
+          product.stock > 0 && product.stock <= LOW_STOCK_LIMIT;
 
         const stockBadge = outOfStock
           ? '<i class="oos">Out</i>'
@@ -354,6 +411,7 @@
       return;
     }
 
+    rememberCart();
     cart[productId] = currentQuantity + 1;
     drawCart();
   }
@@ -371,6 +429,8 @@
       return;
     }
 
+    rememberCart();
+
     if (nextQuantity <= 0) {
       delete cart[productId];
     } else {
@@ -383,6 +443,7 @@
   function removeLine(productId) {
     const product = getProduct(productId);
 
+    rememberCart();
     delete cart[productId];
     drawCart();
 
@@ -400,6 +461,7 @@
 
     if (!confirmed) return;
 
+    rememberCart();
     cart = {};
     $("#customer-name").value = "";
     $("#tendered-amount").value = "";
@@ -746,6 +808,8 @@
     );
 
     cart = {};
+    cartUndoStack.clear();
+    updateUndoButton();
     $("#customer-name").value = "";
     $("#tendered-amount").value = "";
 
@@ -824,10 +888,19 @@
     }
   }
 
-  $("#search").addEventListener("input", drawProducts);
+  // Block numbers in the search box (typing, pasting, dragging)
+  $("#search").addEventListener("keypress", (event) => {
+    if (/\d/.test(event.key)) event.preventDefault();
+  });
+
+  $("#search").addEventListener("input", () => {
+    $("#search").value = $("#search").value.replace(/\d/g, "");
+    drawProducts();
+  });
 
   $("#clear-order-button").onclick = clearOrder;
   $("#hold-order-button").onclick = holdOrder;
+  $("#undo-cart-button").onclick = undoCart;
 
   $("#close-held-button").onclick = () => {
     $("#held-panel").hidden = true;

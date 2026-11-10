@@ -4,8 +4,11 @@
 import decimal
 
 
-LOW_STOCK_LIMIT = 5
-TAX_RATE = decimal.Decimal("0.08")
+# Fallback settings used when the store profile row has no saved value.
+# Administrators can change both at any time on the Settings page.
+DEFAULT_TAX_RATE = decimal.Decimal("0.12")
+DEFAULT_LOW_STOCK_LIMIT = 5
+
 APPOINTMENT_STATUSES = ("scheduled", "completed", "cancelled")
 ORDER_STATUSES = ("queued", "completed", "cancelled")
 

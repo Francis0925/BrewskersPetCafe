@@ -13,10 +13,13 @@ from dotenv import load_dotenv
 from flask import Flask
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from backend.activity import record_activity
 from backend.database import BASE_DIR, PROJECT_ROOT, connect_db, migrate_db
 from backend.security import init_security
 
 
+# Load .env from the project root first, then from BASE_DIR (either location works).
+load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 
@@ -299,6 +302,12 @@ def login(username, password, remember=False):
         cursor.execute("DELETE FROM sessions WHERE expires_at < ?", (now,))
         cursor.execute("DELETE FROM remember_tokens WHERE expires_at < ?", (now,))
         db.commit()
+        record_activity(
+            user_id=user["user_id"],
+            action="login_success",
+            description=f"Successful login for {user['username']}",
+            entity_type="user",
+        )
     finally:
         db.close()
 
@@ -337,7 +346,11 @@ def send_email(to_email, subject, body):
     app_password = os.environ.get("GMAIL_APP_PASSWORD")
 
     if not sender or not app_password:
+        app.logger.error("GMAIL_USER or GMAIL_APP_PASSWORD not loaded from .env")
         return False
+
+    # Google shows app passwords with spaces; remove them if pasted that way.
+    app_password = app_password.replace(" ", "")
 
     message = EmailMessage()
     message["From"] = f"Brewskers <{sender}>"
@@ -362,22 +375,27 @@ def send_email(to_email, subject, body):
 
 def forgot_password(email):
     """Create a reset code when the email belongs to an active account."""
+    email = (email or "").strip()
+
     db = connect_db()
     cursor = db.cursor()
 
     try:
         cursor.execute(
             "SELECT user_id, username FROM users "
-            "WHERE email = ? AND deactivated_at IS NULL",
+            "WHERE lower(email) = lower(?) AND deactivated_at IS NULL",
             (email,),
         )
         user = cursor.fetchone()
 
         if not user:
+            app.logger.warning(
+                "Reset requested but no active account matches that email"
+            )
             return
 
         otp_code = str(secrets.randbelow(900000) + 100000)
-        expires = datetime.datetime.now() + datetime.timedelta(minutes=10)
+        expires = datetime.datetime.now() + datetime.timedelta(minutes=5)
 
         cursor.execute(
             "INSERT INTO otps "
@@ -388,11 +406,21 @@ def forgot_password(email):
         db.commit()
 
         body = (
-            f"Hi {user['username']},\n\n"
-            f"Your Brewskers password reset code is: {otp_code}\n\n"
-            f"This code expires in 10 minutes. "
-            f"If you did not request this, ignore this email.\n\n"
-            f"- Brewskers"
+            "Dear User,\n\n"
+            "Thank you for using our service.\n\n"
+            "To complete your account verification, please use the One-Time "
+            "Password (OTP) provided below:\n\n"
+            f"Your OTP: {otp_code}\n\n"
+            "This code is valid for 5 minutes and can only be used once.\n\n"
+            "For your security, please do not share this code with anyone. "
+            "Our team will never ask you to disclose your OTP.\n\n"
+            "If you did not request this verification code, please disregard "
+            "this email or contact our support team if you have concerns.\n\n"
+            "Thank you for your cooperation.\n\n"
+            "Best regards,\n"
+            "Brewskers Pet Coffee Shop\n"
+            "Customer Support Team\n\n"
+            "This is an automated message. Please do not reply to this email."
         )
 
         send_email(
@@ -409,6 +437,9 @@ def reset_password(email, otp_code, new_password):
     if len(new_password) < 8:
         return False
 
+    email = (email or "").strip()
+    otp_code = str(otp_code or "").strip()
+
     db = connect_db()
     cursor = db.cursor()
 
@@ -417,7 +448,7 @@ def reset_password(email, otp_code, new_password):
             """SELECT otps.otp_id, users.user_id
                  FROM otps
                  JOIN users ON users.user_id = otps.user_id
-                WHERE users.email = ?
+                WHERE lower(users.email) = lower(?)
                   AND users.deactivated_at IS NULL
                   AND otps.otp_code = ?
                   AND otps.purpose = 'reset'
@@ -459,5 +490,3 @@ def reset_password(email, otp_code, new_password):
         return True
     finally:
         db.close()
-
-

@@ -13,6 +13,7 @@ from backend.auth import (
     lock_minutes_left,
     login,
     login_is_locked,
+    record_activity,
     record_failed_login,
     reset_password,
 )
@@ -55,6 +56,12 @@ def api_login():
 
     if not token:
         record_failed_login(username)
+        record_activity(
+            user_id=None,
+            action="login_failed",
+            description=f"Failed login for {username}",
+            entity_type="user",
+        )
         app.logger.warning("Failed login for %r from %s", username, client_ip())
         attempts_left = MAX_FAILED_ATTEMPTS - failed_login_count(username)
 

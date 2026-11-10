@@ -1,6 +1,8 @@
 # Brewskers administration routes
 # Admin dashboard, staff management and password resets
 
+import datetime
+
 from flask import jsonify, render_template, request
 
 from backend.activity import record_activity
@@ -17,6 +19,31 @@ from backend.auth import (
 from backend.config import ROLES
 from backend.helpers import query
 from backend.permissions import admin_required
+from backend.settings import get_store_settings
+
+# Groups activity log entries so the feed can show a small colored badge.
+ACTIVITY_CATEGORIES = {
+    "staff_created": "staff",
+    "role_changed": "staff",
+    "staff_status_changed": "staff",
+    "password_reset": "staff",
+    "csv_imported": "data",
+    "all_imported": "data",
+    "database_restored": "data",
+    "all_exported": "data",
+    "all_sql_exported": "data",
+    "all_db_exported": "data",
+    "products_exported": "data",
+    "services_exported": "data",
+    "orders_exported": "data",
+    "appointments_exported": "data",
+    "order_status_changed": "orders",
+    "backup_created": "system",
+    "backup_restored": "data",
+    "backup_deleted": "system",
+    "settings_updated": "system",
+    "data_cleared": "clear",
+}
 
 
 @app.get("/admin")
@@ -33,7 +60,44 @@ def admin_page(user):
             LIMIT 20"""
     )
 
+    for event in activity:
+        event["category"] = ACTIVITY_CATEGORIES.get(event["action"], "system")
+
     active_staff_count = sum(1 for account in staff if not account["deactivated_at"])
+
+    today = datetime.date.today().isoformat()
+    week_end = (datetime.date.today() + datetime.timedelta(days=7)).isoformat()
+
+    product_count = query(
+        "SELECT COUNT(*) AS n FROM products WHERE status != 'hidden'",
+        one=True,
+        default={"n": 0},
+    )["n"]
+
+    low_stock_count = query(
+        "SELECT COUNT(*) AS n FROM products WHERE stock <= ? AND status != 'hidden'",
+        (get_store_settings().low_stock_limit,),
+        one=True,
+        default={"n": 0},
+    )["n"]
+
+    today_sales = query(
+        """SELECT COUNT(*) AS n, COALESCE(SUM(total_amount), 0) AS total
+             FROM orders
+            WHERE DATE(order_date) = ?
+              AND COALESCE(status, 'completed') != 'cancelled'""",
+        (today,),
+        one=True,
+        default={"n": 0, "total": 0},
+    )
+
+    upcoming_appointments = query(
+        """SELECT COUNT(*) AS n FROM appointments
+            WHERE appt_date >= ? AND appt_date <= ? AND status = 'scheduled'""",
+        (today, week_end),
+        one=True,
+        default={"n": 0},
+    )["n"]
 
     return render_template(
         "admin.html",
@@ -43,6 +107,11 @@ def admin_page(user):
         staff=staff,
         active_staff_count=active_staff_count,
         activity=activity,
+        product_count=product_count,
+        low_stock_count=low_stock_count,
+        orders_today=today_sales["n"],
+        sales_today=today_sales["total"],
+        upcoming_appointments=upcoming_appointments,
     )
 
 

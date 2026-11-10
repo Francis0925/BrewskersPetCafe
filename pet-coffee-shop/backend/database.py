@@ -154,7 +154,9 @@ def _create_fresh_database():
             store_name TEXT NOT NULL,
             address TEXT,
             phone TEXT,
-            email TEXT
+            email TEXT,
+            tax_rate REAL NOT NULL DEFAULT 12.0,
+            low_stock_limit INTEGER NOT NULL DEFAULT 5
         );
         CREATE TABLE products (
             product_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -175,7 +177,8 @@ def _create_fresh_database():
             change_amount REAL,
             order_date DATETIME DEFAULT CURRENT_TIMESTAMP,
             created_by INTEGER REFERENCES users(user_id),
-            status TEXT NOT NULL DEFAULT 'queued'
+            status TEXT NOT NULL DEFAULT 'queued',
+            tax_rate REAL NOT NULL DEFAULT 8.0
         );
         CREATE TABLE order_items (
             item_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -221,7 +224,7 @@ def _create_fresh_database():
         """
     )
     cursor.execute(
-        "INSERT INTO store_profile (store_name, address, phone, email) VALUES (?, ?, ?, ?)",
+        "INSERT INTO store_profile (store_name, address, phone, email, tax_rate, low_stock_limit) VALUES (?, ?, ?, ?, 12.0, 5)",
         ("Brewskers", "123 Sample St", "0900-000-0000", "hello@brewskers.example"),
     )
     cursor.execute(
@@ -272,6 +275,19 @@ def migrate_db():
         if "products" in {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}:
             if "image" not in _columns(conn, "products"):
                 conn.execute("ALTER TABLE products ADD COLUMN image TEXT")
+
+        # Store settings: tax rate and low stock threshold used to be
+        # hardcoded constants. Older databases need the columns added.
+        if "tax_rate" not in _columns(conn, "store_profile"):
+            conn.execute("ALTER TABLE store_profile ADD COLUMN tax_rate REAL NOT NULL DEFAULT 12.0")
+        if "low_stock_limit" not in _columns(conn, "store_profile"):
+            conn.execute("ALTER TABLE store_profile ADD COLUMN low_stock_limit INTEGER NOT NULL DEFAULT 5")
+
+        # Every order remembers the tax rate that was applied to it, so old
+        # receipts stay accurate after the store changes its rate. The 8.0
+        # default matches the rate charged before this column existed.
+        if "tax_rate" not in _columns(conn, "orders"):
+            conn.execute("ALTER TABLE orders ADD COLUMN tax_rate REAL NOT NULL DEFAULT 8.0")
 
         # Indexes for faster filtering in data management screens
         conn.execute("CREATE INDEX IF NOT EXISTS idx_orders_date ON orders(order_date)")

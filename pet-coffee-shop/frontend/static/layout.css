@@ -58,7 +58,9 @@ body.layout-topbar .order {
   padding: var(--s2) var(--s4);
   background: var(--sidebar);
   border-bottom: 1px solid var(--line);
-  box-shadow: 0 1px 0 rgba(45, 32, 24, 0.04), 0 8px 24px -18px rgba(45, 32, 24, 0.35);
+  box-shadow:
+    0 1px 0 rgba(45, 32, 24, 0.04),
+    0 8px 24px -18px rgba(45, 32, 24, 0.35);
   position: sticky;
   top: 0;
   z-index: 30;
@@ -73,7 +75,9 @@ body.layout-topbar .order {
   flex: none;
   padding: 6px 10px 6px 6px;
   border-radius: var(--r-sm);
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .topbar-logo:hover {
@@ -123,7 +127,10 @@ body.layout-topbar .order {
   font-size: 0.85rem;
   font-weight: 500;
   white-space: nowrap;
-  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
 }
 
 .topbar-nav a svg {
@@ -171,7 +178,10 @@ body.layout-topbar .order {
   width: auto;
   flex: none;
   margin-left: auto;
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .topbar-me:hover {
@@ -206,7 +216,9 @@ body.layout-topbar .order {
   width: auto;
   margin-left: auto;
   padding: 6px 10px;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .headerbar-me:hover {
@@ -296,12 +308,15 @@ body.layout-sidebar .sidebar .me {
   animation: pageIn 0.35s ease both;
 }
 
-.panel, .tablewrap, .stat {
+.panel,
+.tablewrap,
+.stat {
   border: 1px solid var(--line);
   box-shadow: 0 1px 0 rgba(45, 32, 24, 0.04);
 }
 
-.panel:hover, .tablewrap:hover {
+.panel:hover,
+.tablewrap:hover {
   border-color: var(--line-strong);
 }
 
@@ -309,12 +324,16 @@ body.layout-sidebar .sidebar .me {
   letter-spacing: 0.01em;
 }
 
-.btn.primary, .btn:not(.ghost):not(.danger) {
+.btn.primary,
+.btn:not(.ghost):not(.danger) {
   box-shadow: 0 6px 14px -8px rgba(45, 32, 24, 0.45);
 }
 
 .chip {
-  transition: background 0.18s ease, transform 0.18s ease, color 0.18s ease;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    color 0.18s ease;
 }
 
 .chip:hover {
@@ -329,11 +348,16 @@ tbody tr {
   transition: background 0.15s ease;
 }
 
-input, select, textarea {
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+input,
+select,
+textarea {
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
-.topbar, .headerbar {
+.topbar,
+.headerbar {
   backdrop-filter: blur(6px);
 }
 
@@ -342,11 +366,13 @@ input, select, textarea {
 }
 
 .nav a {
-  transition: background 0.18s ease, transform 0.18s ease;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease;
 }
 
 .nav a:hover {
-  background: rgba(45, 32, 24, .05);
+  background: rgba(45, 32, 24, 0.05);
 }
 
 .nav a.active {
@@ -375,7 +401,9 @@ input, select, textarea {
   color: var(--ink-soft);
   font-weight: 600;
   font-size: 0.88rem;
-  transition: background 0.18s ease, transform 0.18s ease;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease;
 }
 
 .order-tabs a:hover {
@@ -408,8 +436,14 @@ input, select, textarea {
 }
 
 @keyframes popupIn {
-  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* Product thumbnails */
@@ -542,21 +576,43 @@ main {
 }
 
 @keyframes pageIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-.stat, .panel, .tablewrap, .dashboard-metric, .service-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+.stat,
+.panel,
+.tablewrap,
+.dashboard-metric,
+.service-card {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
-.stat:hover, .dashboard-metric:hover {
+.stat:hover,
+.dashboard-metric:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 24px -16px rgba(45, 32, 24, 0.35);
 }
 
-.btn, .chip, .product, .cal .day, .list .item {
-  transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+.btn,
+.chip,
+.product,
+.cal .day,
+.list .item {
+  transition:
+    transform 0.16s ease,
+    background 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
 .btn:active {
@@ -572,8 +628,12 @@ main {
 }
 
 @keyframes modalIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .modal form {
@@ -581,12 +641,20 @@ main {
 }
 
 @keyframes modalCardIn {
-  from { opacity: 0; transform: translateY(8px) scale(0.98); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .toast {
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
 }
 
 /* Appointment detail sheet */
@@ -605,7 +673,9 @@ main {
   background: var(--surface);
   transform: translateX(24px);
   opacity: 0;
-  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.25, 1), opacity 0.25s ease;
+  transition:
+    transform 0.28s cubic-bezier(0.2, 0.8, 0.25, 1),
+    opacity 0.25s ease;
   display: flex;
   flex-direction: column;
 }
@@ -710,7 +780,7 @@ main {
   }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 700px) {
   body.layout-sidebar {
     display: flex;
     flex-direction: column;
@@ -759,4 +829,69 @@ main {
     width: auto;
     transform-origin: bottom center;
   }
+}
+
+/* Bigger product cards with larger pictures */
+.products {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--s4);
+}
+
+/* The grid always shows five cards per row and the cards simply resize
+   with the window, so zooming never rearranges the page. Fewer columns
+   only kick in for genuinely small windows such as phones. */
+@media (max-width: 1240px) {
+  .products {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s3);
+  }
+}
+
+@media (max-width: 760px) {
+  .products {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .products {
+    grid-template-columns: 1fr;
+  }
+}
+
+.product {
+  padding: var(--s3);
+  container-type: inline-size;
+}
+
+.product .product-img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--r-sm);
+  margin-bottom: var(--s2);
+  display: block;
+}
+
+.product .art {
+  height: auto;
+  aspect-ratio: 4 / 3;
+  font-size: 2.6rem;
+}
+
+/* The placeholder initials scale with the card, so a row of five keeps
+   looking right at any zoom. Older browsers keep the fixed size above. */
+@supports (font-size: 1cqw) {
+  .product .art {
+    font-size: 20cqw;
+  }
+}
+
+.product b {
+  font-size: 0.95rem;
+}
+
+.product .price span:first-child {
+  font-size: 1.12rem;
 }

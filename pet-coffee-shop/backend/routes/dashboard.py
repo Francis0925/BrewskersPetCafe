@@ -6,9 +6,9 @@ import datetime
 from flask import render_template
 
 from backend.auth import app
-from backend.config import LOW_STOCK_LIMIT
 from backend.helpers import query
 from backend.permissions import require
+from backend.settings import get_store_settings
 
 
 @app.get("/dashboard")
@@ -39,7 +39,7 @@ def dashboard(user):
 
     low_stock_count = query(
         "SELECT COUNT(*) AS n FROM products WHERE stock <= ? AND status != 'hidden'",
-        (LOW_STOCK_LIMIT,),
+        (get_store_settings().low_stock_limit,),
         one=True,
         default={"n": 0},
     )["n"]

@@ -6,6 +6,9 @@ import io
 
 from flask import Response
 
+from backend.errors import InvalidRecordError
+from backend.models import Product, Service
+
 
 def csv_bytes(headers, rows):
     """Return rows as CSV text for use inside a ZIP file."""
@@ -119,70 +122,49 @@ def parse_active(value, default=True):
     if value in {"0", "false", "no", "off", "inactive"}:
         return 0
 
-    raise ValueError("Active must be 1, 0, true, false, yes, or no")
+    raise InvalidRecordError("Active must be 1, 0, true, false, yes, or no")
 
 
 def validate_product_csv_row(row, headers):
-    """Validate and normalize one product CSV row."""
-    name = csv_value(row, headers, "name")
-    category = csv_value(row, headers, "category")
-    price_text = csv_value(row, headers, "price")
-    stock_text = csv_value(row, headers, "stock")
+    """Validate and normalize one product CSV row.
 
-    if not name:
-        raise ValueError("Name is required")
+    The Product object owns the record rules, so the same validation runs
+    no matter where a product row comes from.
+    """
+    product = Product(
+        name=csv_value(row, headers, "name"),
+        category=csv_value(row, headers, "category"),
+        price=csv_value(row, headers, "price"),
+        stock=csv_value(row, headers, "stock"),
+    )
 
-    if not category:
-        raise ValueError("Category is required")
+    product.validate()
 
-    try:
-        price = float(price_text)
-    except (TypeError, ValueError):
-        raise ValueError("Price must be a valid number")
-
-    try:
-        stock = int(stock_text or "0")
-    except (TypeError, ValueError):
-        raise ValueError("Stock must be a whole number")
-
-    if price < 0:
-        raise ValueError("Price cannot be negative")
-
-    if stock < 0:
-        raise ValueError("Stock cannot be negative")
-
-    return {"name": name, "category": category, "price": price, "stock": stock}
+    return {
+        "name": product.name,
+        "category": product.category,
+        "price": product.price,
+        "stock": product.stock,
+    }
 
 
 def validate_service_csv_row(row, headers):
-    """Validate and normalize one service CSV row."""
-    name = csv_value(row, headers, "name")
-    price_text = csv_value(row, headers, "price")
-    duration_text = csv_value(row, headers, "duration")
-    active_text = csv_value(row, headers, "active", "1")
+    """Validate and normalize one service CSV row.
 
-    if not name:
-        raise ValueError("Name is required")
+    The Service object owns the record rules, the same way products do.
+    """
+    service = Service(
+        name=csv_value(row, headers, "name"),
+        price=csv_value(row, headers, "price"),
+        duration=csv_value(row, headers, "duration"),
+        active=csv_value(row, headers, "active", "1"),
+    )
 
-    try:
-        price = float(price_text)
-    except (TypeError, ValueError):
-        raise ValueError("Price must be a valid number")
+    service.validate()
 
-    try:
-        duration = int(duration_text)
-    except (TypeError, ValueError):
-        raise ValueError("Duration must be a whole number")
-
-    if price < 0:
-        raise ValueError("Price cannot be negative")
-
-    if duration <= 0:
-        raise ValueError("Duration must be greater than zero")
-
-    try:
-        active = parse_active(active_text)
-    except ValueError as error:
-        raise ValueError(str(error))
-
-    return {"name": name, "price": price, "duration": duration, "active": active}
+    return {
+        "name": service.name,
+        "price": service.price,
+        "duration": service.duration,
+        "active": parse_active(service.active),
+    }

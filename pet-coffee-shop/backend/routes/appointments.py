@@ -7,9 +7,10 @@ from flask import jsonify, render_template, request
 
 from backend.auth import app
 from backend.config import APPOINTMENT_STATUSES
+from backend.errors import InvalidRecordError
 from backend.helpers import query, run
+from backend.models import Appointment, Service
 from backend.permissions import require
-from backend.security import validate_appointment
 
 
 APPOINTMENT_SQL = """SELECT a.*, s.name AS service_name
@@ -17,6 +18,23 @@ APPOINTMENT_SQL = """SELECT a.*, s.name AS service_name
                        JOIN services s ON s.service_id = a.service_id
                        {where}
                       ORDER BY a.appt_date, a.appt_time"""
+
+
+def bookable_services():
+    """Return the services that can be booked, as plain dictionaries.
+
+    Each row becomes a Service object and is asked whether it is available.
+    The same is_available() call on a Product means something different,
+    which is the polymorphism of the catalog classes.
+    """
+    return [
+        service.to_dict()
+        for service in (
+            Service.from_row(row)
+            for row in query("SELECT * FROM services ORDER BY name")
+        )
+        if service.is_available()
+    ]
 
 
 @app.get("/appointments")
@@ -34,7 +52,7 @@ def appointments(user):
         active="appointments",
         title="Appointments",
         appointments=upcoming,
-        services=query("SELECT * FROM services WHERE active = 1 ORDER BY name"),
+        services=bookable_services(),
         today=datetime.date.today(),
     )
 
@@ -52,7 +70,7 @@ def schedule(user):
         active="schedule",
         title="Schedule",
         appointments=appointments_list,
-        services=query("SELECT * FROM services WHERE active = 1 ORDER BY name"),
+        services=bookable_services(),
         today=datetime.date.today(),
     )
 
@@ -62,11 +80,12 @@ def schedule(user):
 def add_appointment(user):
     data = request.get_json(force=True) or {}
 
-    # Use the shared validator so phone, date, photo and text rules are enforced
-    clean, error = validate_appointment(data)
-
-    if error:
-        return jsonify(ok=False, error=error), 400
+    # The Appointment object owns the booking rules. validate() returns the
+    # normalized fields or raises InvalidRecordError with the reason.
+    try:
+        clean = Appointment(**data).validate()
+    except InvalidRecordError as error:
+        return jsonify(ok=False, error=str(error)), 400
 
     run(
         """INSERT INTO appointments

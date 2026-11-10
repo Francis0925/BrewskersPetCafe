@@ -8,10 +8,11 @@ from flask import jsonify, render_template, request
 from werkzeug.utils import secure_filename
 
 from backend.auth import app
-from backend.config import LOW_STOCK_LIMIT
 from backend.database import PROJECT_ROOT
 from backend.helpers import query, run
 from backend.permissions import require
+from backend.settings import get_store_settings
+from backend.pos_state import product_index
 
 
 IMAGE_DIR = os.path.join(PROJECT_ROOT, "frontend", "static", "product_images")
@@ -57,7 +58,7 @@ def inventory(user):
         active="inventory",
         title="Inventory",
         products=products,
-        low_stock_limit=LOW_STOCK_LIMIT,
+        low_stock_limit=get_store_settings().low_stock_limit,
     )
 
 
@@ -109,6 +110,7 @@ def add_product(user):
         except OSError:
             pass
 
+    product_index.invalidate()
     return jsonify(ok=True, product_id=product_id, image=image_path)
 
 
@@ -128,6 +130,7 @@ def update_product_image(user, product_id):
         return jsonify(ok=False, error=error), 400
 
     run("UPDATE products SET image = ? WHERE product_id = ?", (image_path, product_id))
+    product_index.invalidate()
     return jsonify(ok=True, image=image_path)
 
 
@@ -153,6 +156,7 @@ def set_stock(user, product_id):
     else:
         run("UPDATE products SET stock = ? WHERE product_id = ?", (amount, product_id))
 
+    product_index.invalidate()
     return jsonify(ok=True)
 
 
@@ -160,4 +164,5 @@ def set_stock(user, product_id):
 @require("inventory.write")
 def remove_product(user, product_id):
     run("UPDATE products SET status = 'hidden' WHERE product_id = ?", (product_id,))
+    product_index.invalidate()
     return jsonify(ok=True)

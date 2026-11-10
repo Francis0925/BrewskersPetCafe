@@ -6,9 +6,9 @@ import datetime
 from flask import render_template
 
 from backend.auth import app
-from backend.config import LOW_STOCK_LIMIT
 from backend.helpers import query
 from backend.permissions import admin_required
+from backend.settings import get_store_settings
 
 
 @app.get("/reports")
@@ -65,7 +65,7 @@ def reports_page(user):
         """SELECT * FROM products
             WHERE stock <= ? AND status != 'hidden'
             ORDER BY stock ASC, name""",
-        (LOW_STOCK_LIMIT,),
+        (get_store_settings().low_stock_limit,),
     )
 
     upcoming = query(
@@ -89,5 +89,5 @@ def reports_page(user):
         daily=daily,
         low_stock=low_stock,
         upcoming=upcoming,
-        low_stock_limit=LOW_STOCK_LIMIT,
+        low_stock_limit=get_store_settings().low_stock_limit,
     )
