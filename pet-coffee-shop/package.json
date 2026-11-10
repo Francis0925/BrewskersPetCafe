@@ -1,0 +1,21 @@
+{
+  "name": "pet-coffee-shop",
+  "version": "1.0.0",
+  "description": "Flask and SQLite system for POS, inventory, pet appointments, services, reports and staff management.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^13.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0",
+    "nodemailer": "^10.3.1"
+  }
+}
