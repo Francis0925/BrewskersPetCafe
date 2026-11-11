@@ -70,6 +70,184 @@ def _export_all_rows():
     }
 
 
+# Data maintenance actions shown on the admin data page. Each entry keeps
+# the dialog text, the SQL statements it runs, and the query that counts
+# the records it would touch. confirm_word marks the permanent deletions
+# and bulk resets that also need the admin to type that word before the
+# server accepts the request. Actions without a confirm_word only hide or
+# flag records, so the dialog alone is enough confirmation.
+MAINTENANCE_ACTIONS = {
+    # Inventory and catalog maintenance.
+    "reset_stock": {
+        "title": "Reset all product stock",
+        "summary": "Set the stock of every product to zero without deleting product records.",
+        "details": "Product records, prices and pictures are kept, but every stock count becomes zero, so nothing can be sold on the POS until items are restocked. Orders and sales reports are not changed.",
+        "button": "Reset stock",
+        "confirm_word": "DELETE",
+        "count_sql": "SELECT COUNT(*) FROM products",
+        "count_noun": "products",
+        "related_sql": None,
+        "related_noun": "",
+        "steps": ["UPDATE products SET stock = 0"],
+        "result": "Stock reset to zero on {n} products",
+    },
+    "deactivate_products": {
+        "title": "Deactivate all products",
+        "summary": "Make all products unavailable for POS transactions while keeping their records.",
+        "details": "Products are hidden from the POS and the inventory page, but their records stay in the database with prices, stock and pictures. Importing the products CSV again makes them available again.",
+        "button": "Deactivate products",
+        "confirm_word": None,
+        "count_sql": "SELECT COUNT(*) FROM products WHERE status != 'hidden'",
+        "count_noun": "products",
+        "related_sql": None,
+        "related_noun": "",
+        "steps": ["UPDATE products SET status = 'hidden' WHERE status != 'hidden'"],
+        "result": "Deactivated {n} products",
+    },
+    "deactivate_services": {
+        "title": "Deactivate all services",
+        "summary": "Make every pet care service unavailable for new appointments without deleting it.",
+        "details": "Services stop appearing on the booking form, but their records stay with prices and durations. Existing appointments are kept and still show their service. Importing the services CSV again makes them bookable again.",
+        "button": "Deactivate services",
+        "confirm_word": None,
+        "count_sql": "SELECT COUNT(*) FROM services WHERE active != 0",
+        "count_noun": "services",
+        "related_sql": None,
+        "related_noun": "",
+        "steps": ["UPDATE services SET active = 0 WHERE active != 0"],
+        "result": "Deactivated {n} services",
+    },
+    # Business record maintenance.
+    "clear_appointments": {
+        "title": "Clear appointment history",
+        "summary": "Permanently remove all appointment records and scheduled guest information.",
+        "details": "Every appointment is deleted, whether it is scheduled, completed or cancelled. Pet names, owner names, phone numbers and visit notes are gone for good. The services themselves are kept.",
+        "button": "Clear appointments",
+        "confirm_word": "DELETE",
+        "count_sql": "SELECT COUNT(*) FROM appointments",
+        "count_noun": "appointments",
+        "related_sql": None,
+        "related_noun": "",
+        "steps": ["DELETE FROM appointments"],
+        "result": "Permanently deleted {n} appointments",
+    },
+    "clear_cancelled_appointments": {
+        "title": "Clear cancelled appointments",
+        "summary": "Permanently remove cancelled appointment records.",
+        "details": "Only appointments marked as cancelled are deleted. Scheduled and completed appointments are kept, and the scheduler keeps working as before.",
+        "button": "Clear cancelled",
+        "confirm_word": "DELETE",
+        "count_sql": "SELECT COUNT(*) FROM appointments WHERE status = 'cancelled'",
+        "count_noun": "cancelled appointments",
+        "related_sql": None,
+        "related_noun": "",
+        "steps": ["DELETE FROM appointments WHERE status = 'cancelled'"],
+        "result": "Permanently deleted {n} cancelled appointments",
+    },
+    "clear_completed_appointments": {
+        "title": "Clear completed appointments",
+        "summary": "Permanently remove completed appointment records.",
+        "details": "Only appointments marked as completed are deleted. Scheduled and cancelled appointments are kept, and the scheduler keeps working as before.",
+        "button": "Clear completed",
+        "confirm_word": "DELETE",
+        "count_sql": "SELECT COUNT(*) FROM appointments WHERE status = 'completed'",
+        "count_noun": "completed appointments",
+        "related_sql": None,
+        "related_noun": "",
+        "steps": ["DELETE FROM appointments WHERE status = 'completed'"],
+        "result": "Permanently deleted {n} completed appointments",
+    },
+    "clear_orders": {
+        "title": "Clear order history",
+        "summary": "Permanently remove all orders, order items, sales totals, and receipt history.",
+        "details": "Orders and the order lines linked to them are deleted together, so receipts can no longer be reprinted and sales reports start from zero. Products and their stock are not changed.",
+        "button": "Clear orders",
+        "confirm_word": "DELETE",
+        "count_sql": "SELECT COUNT(*) FROM orders",
+        "count_noun": "orders",
+        "related_sql": "SELECT COUNT(*) FROM order_items",
+        "related_noun": "order lines",
+        "steps": [
+            "DELETE FROM order_items",
+            "DELETE FROM orders",
+        ],
+        "result": "Permanently deleted {n} orders",
+    },
+    "clear_customers": {
+        "title": "Clear customer records",
+        "summary": "Remove customer names from orders without deleting the orders.",
+        "details": "Customer names are removed from order records, but each order, its totals and its receipts stay for reporting. Appointments keep their owner names because those bookings still need them.",
+        "button": "Clear customers",
+        "confirm_word": "DELETE",
+        "count_sql": "SELECT COUNT(*) FROM orders WHERE customer_name IS NOT NULL",
+        "count_noun": "orders with a customer name",
+        "related_sql": None,
+        "related_noun": "",
+        "steps": ["UPDATE orders SET customer_name = NULL WHERE customer_name IS NOT NULL"],
+        "result": "Removed customer names from {n} orders",
+    },
+    # System activity maintenance.
+    "clear_activity": {
+        "title": "Clear activity logs",
+        "summary": "Permanently remove all activity log entries.",
+        "details": "Every recorded staff action is deleted. One new entry describing this maintenance action is written afterwards, so the log still shows who cleared it. Staff accounts and sessions are not touched.",
+        "button": "Clear activity",
+        "confirm_word": "DELETE",
+        "count_sql": "SELECT COUNT(*) FROM activity_log",
+        "count_noun": "activity log entries",
+        "related_sql": None,
+        "related_noun": "",
+        "steps": ["DELETE FROM activity_log"],
+        "result": "Permanently deleted {n} activity log entries",
+    },
+    "clear_logins": {
+        "title": "Clear login history",
+        "summary": "Remove historical login records without affecting active sessions.",
+        "details": "Successful and failed login entries are removed from the activity log. Other activity entries are kept. Staff accounts, active sessions and logged in staff are not affected.",
+        "button": "Clear logins",
+        "confirm_word": "DELETE",
+        "count_sql": "SELECT COUNT(*) FROM activity_log WHERE action LIKE 'login%'",
+        "count_noun": "login history entries",
+        "related_sql": None,
+        "related_noun": "",
+        "steps": ["DELETE FROM activity_log WHERE action LIKE 'login%'"],
+        "result": "Permanently deleted {n} login history entries",
+    },
+    "clear_archived": {
+        "title": "Clear archived records",
+        "summary": "Permanently remove archived records.",
+        "details": "Hidden products are deleted for good, together with the order lines linked to them, so receipts for those orders lose those lines. Orders keep their totals and sales reports stay correct. Available products are not touched.",
+        "button": "Clear archived",
+        "confirm_word": "DELETE",
+        "count_sql": "SELECT COUNT(*) FROM products WHERE status = 'hidden'",
+        "count_noun": "archived products",
+        "related_sql": "SELECT COUNT(*) FROM order_items WHERE product_id IN (SELECT product_id FROM products WHERE status = 'hidden')",
+        "related_noun": "order lines linked to them",
+        "steps": [
+            "DELETE FROM order_items WHERE product_id IN (SELECT product_id FROM products WHERE status = 'hidden')",
+            "DELETE FROM products WHERE status = 'hidden'",
+        ],
+        "result": "Permanently deleted {n} archived products",
+    },
+}
+
+
+def _maintenance_dialog_specs():
+    """Dialog metadata for the page, without any SQL in it."""
+    return {
+        key: {
+            "title": spec["title"],
+            "summary": spec["summary"],
+            "details": spec["details"],
+            "button": spec["button"],
+            "confirm_word": spec["confirm_word"],
+            "count_noun": spec["count_noun"],
+            "related_noun": spec["related_noun"],
+        }
+        for key, spec in MAINTENANCE_ACTIONS.items()
+    }
+
+
 @app.get("/admin/data")
 @admin_required
 def admin_data(user):
@@ -104,6 +282,7 @@ def admin_data(user):
         db_size=db_size,
         backup_count=len(backups),
         last_backup=backups[-1] if backups else None,
+        maintenance_actions=_maintenance_dialog_specs(),
     )
 
 
@@ -746,67 +925,52 @@ def delete_backup(user):
     return jsonify(ok=True)
 
 
-@app.post("/api/admin/reset-data")
+@app.get("/api/admin/reset-data/preview")
 @admin_required
-def api_admin_reset_data(user):
-    data = request.get_json(force=True) or {}
-    action = (data.get("action") or "").strip()
-    confirmation = (data.get("confirmation") or "").strip().upper()
-    if confirmation != "DELETE":
-        return jsonify(ok=False, error="Type DELETE to confirm"), 400
-    descriptions = {
-        # Inventory and catalog maintenance actions.
-        "reset_stock": "Reset all product stock to zero",
-        "deactivate_products": "Hide all products from inventory and the POS",
-        "hide_products": "Hide all products from inventory and the POS",
-        "deactivate_services": "Hide all services from booking",
-        "hide_services": "Hide all services from booking",
-        # Business record maintenance actions.
-        "clear_appointments": "Permanently delete all appointments",
-        "delete_appointments": "Permanently delete all appointments",
-        "clear_cancelled_appointments": "Permanently delete all cancelled appointments",
-        "clear_completed_appointments": "Permanently delete all completed appointments",
-        "clear_orders": "Permanently clear all order and receipt history",
-        "delete_orders": "Permanently clear all order and receipt history",
-        "clear_customers": "Remove customer names from orders while keeping the orders",
-        # System activity maintenance actions.
-        "clear_activity": "Permanently clear all activity log entries",
-        "delete_activity": "Permanently clear all activity log entries",
-        "clear_logins": "Permanently clear login history entries",
-        "clear_archived": "Permanently remove archived records",
-    }
-    if action not in descriptions:
-        return jsonify(ok=False, error="Unknown reset action"), 400
+def preview_reset_data(user):
+    """Count the records each maintenance action would touch, right now."""
     db = connect_db()
     cursor = db.cursor()
     try:
-        if action == "reset_stock":
-            cursor.execute("UPDATE products SET stock = 0")
-        elif action == "deactivate_products" or action == "hide_products":
-            cursor.execute("UPDATE products SET status = 'hidden'")
-        elif action == "deactivate_services" or action == "hide_services":
-            cursor.execute("UPDATE services SET active = 0")
-        elif action == "clear_appointments" or action == "delete_appointments":
-            cursor.execute("DELETE FROM appointments")
-        elif action == "clear_cancelled_appointments":
-            cursor.execute("DELETE FROM appointments WHERE status = 'cancelled'")
-        elif action == "clear_completed_appointments":
-            cursor.execute("DELETE FROM appointments WHERE status = 'completed'")
-        elif action == "clear_orders" or action == "delete_orders":
-            cursor.execute("DELETE FROM order_items")
-            cursor.execute("DELETE FROM orders")
-        elif action == "clear_activity" or action == "delete_activity":
-            cursor.execute("DELETE FROM activity_log")
-        elif action == "clear_logins":
-            cursor.execute("DELETE FROM activity_log WHERE action LIKE 'login%'")
-        elif action == "clear_customers":
-            cursor.execute("UPDATE orders SET customer_name = NULL")
-        elif action == "clear_archived":
-            cursor.execute(
-                "DELETE FROM order_items WHERE product_id IN "
-                "(SELECT product_id FROM products WHERE status = 'hidden')"
-            )
-            cursor.execute("DELETE FROM products WHERE status = 'hidden'")
+        actions = {}
+        for key, spec in MAINTENANCE_ACTIONS.items():
+            entry = {"count": cursor.execute(spec["count_sql"]).fetchone()[0]}
+            if spec["related_sql"]:
+                entry["related"] = cursor.execute(spec["related_sql"]).fetchone()[0]
+            actions[key] = entry
+    except Exception:
+        app.logger.exception("Maintenance preview failed")
+        return jsonify(ok=False, error="Could not count the records"), 500
+    finally:
+        db.close()
+    return jsonify(ok=True, actions=actions)
+
+
+@app.post("/api/admin/reset-data")
+@admin_required
+def api_admin_reset_data(user):
+    """Run one maintenance action chosen on the admin data page."""
+    data = request.get_json(force=True) or {}
+    action = (data.get("action") or "").strip()
+    spec = MAINTENANCE_ACTIONS.get(action)
+    if spec is None:
+        return jsonify(ok=False, error="Unknown reset action"), 400
+    # Permanent deletions and bulk resets need the typed confirmation word.
+    # Lighter actions such as deactivating products accept the word but do
+    # not require it, so older clients that always send it keep working.
+    if spec["confirm_word"]:
+        confirmation = (data.get("confirmation") or "").strip().upper()
+        if confirmation != spec["confirm_word"]:
+            return jsonify(ok=False, error=f"Type {spec['confirm_word']} to confirm"), 400
+    db = connect_db()
+    cursor = db.cursor()
+    try:
+        # Child rows go first, so foreign keys stay valid while deleting.
+        for statement in spec["steps"]:
+            cursor.execute(statement)
+        # The last statement is the one the dialog counts, so its rowcount
+        # is the number reported back to the admin.
+        affected = cursor.rowcount
         db.commit()
     except Exception:
         db.rollback()
@@ -815,5 +979,6 @@ def api_admin_reset_data(user):
     finally:
         db.close()
     reset_all()
-    record_activity(user_id=user["user_id"], action="data_cleared", description=descriptions[action], entity_type="system")
-    return jsonify(ok=True, message=descriptions[action])
+    message = spec["result"].format(n=affected)
+    record_activity(user_id=user["user_id"], action="data_cleared", description=message, entity_type="system")
+    return jsonify(ok=True, message=message, affected=affected, action=action)

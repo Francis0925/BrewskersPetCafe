@@ -20,7 +20,7 @@
 } %}
 
 <style>
-  /* ---------- Receipt paper (screen preview: 340px wide, height follows content) ---------- */
+  /* Receipt paper for the screen preview, 340px wide, height follows content */
   :where(.rcpt-paper, .rcpt-paper *) {
     box-sizing: border-box;
     margin: 0;
@@ -132,7 +132,7 @@
   .rcpt-extra  { margin-top: 6px; font-size: 10px; overflow-wrap: anywhere; }
   .rcpt-end    { margin-top: 10px; font-size: 10px; font-weight: 700; letter-spacing: 0.2em; }
 
-  /* ---------- Preview modal (screen only) ---------- */
+  /* Preview modal, screen only */
   .rcpt-overlay {
     display: none;
     position: fixed;
@@ -195,7 +195,7 @@
     font: inherit;
   }
 
-  /* ---------- Print root: injected at print time as a direct child of <body> ----------
+  /* Print root, added at print time as a direct child of <body>
      On screen it is parked off-canvas so its height can be measured with the real
      print width. Print widths are PHYSICAL (mm), not the 340px preview width. */
   #rcpt-print-root {
@@ -306,7 +306,7 @@
   var options = {};
   var printing = false;
 
-  /* ---------- helpers ---------- */
+  /* Helper functions */
   function el(tag, cls, text) {
     var node = document.createElement(tag);
     if (cls) node.className = cls;
@@ -355,7 +355,7 @@
 
   function rule(solid) { return el("div", "rcpt-rule" + (solid ? " solid" : "")); }
 
-  /* ---------- render ----------
+  /* Render the receipt
      data = { orderNo, date, cashier, customer, method, lines:[{name, qty, unitPrice, lineTotal}],
               subtotal, discount, tax, taxLabel, serviceCharge, total, paid, change, reference } */
   function render(d) {
@@ -447,7 +447,7 @@
     paperEl.append(footer);
   }
 
-  /* ---------- preview modal ---------- */
+  /* Preview modal */
   function show(data, opts) {
     options = opts || {};
     render(data);
@@ -473,7 +473,7 @@
   if (!PAPER[sizeSel.value]) sizeSel.value = "80";
   sizeSel.onchange = function () { try { localStorage.setItem(STORE_KEY, sizeSel.value); } catch (e) {} };
 
-  /* ---------- printing ---------- */
+  /* Printing */
   function cleanup() {
     var root = document.getElementById("rcpt-print-root");
     if (root) root.remove();

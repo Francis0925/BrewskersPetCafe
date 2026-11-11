@@ -1,26 +1,26 @@
-/* ==========================================================================
-   Brewskers — design system
-   Warm paper + espresso. Flat surfaces, hairline borders, one accent.
-   Spacing scale: 4 / 8 / 12 / 16 / 24 / 32 / 40   Radius: 10 (cards) · 8 (controls)
-   ========================================================================== */
+/* Brewskers design system
+   Warm paper and espresso tones, flat surfaces, thin borders, one accent.
+   Spacing steps are 4, 8, 12, 16, 24, 32 and 40.
+   Corner radius is 10 for cards and 8 for controls. */
 
 :root {
-  --bg: #efe7d6;
-  --sidebar: #e6dbc2;
-  --surface: #f9f4e8;
-  --inset: #f1e9d6;
-  --field: #fdfaf2;
+  /* Figma palette: light cream surfaces, warm gray borders, espresso ink. */
+  --bg: #faf8f3;
+  --sidebar: #f6f3ec;
+  --surface: #ffffff;
+  --inset: #f6f3ec;
+  --field: #ffffff;
 
-  --ink: #2d2018;
-  --ink-soft: #52402f;
-  --muted: #7e6d57;
+  --ink: #3a2a1e;
+  --ink-soft: #5a4a3a;
+  --muted: #8a7a6a;
 
-  --line: rgba(45, 32, 24, 0.13);
-  --line-strong: rgba(45, 32, 24, 0.26);
+  --line: rgba(58, 42, 30, 0.10);
+  --line-strong: rgba(58, 42, 30, 0.20);
 
-  --accent: #9c5a22;
-  --accent-ink: #7a4416;
-  --accent-soft: #ecdcc0;
+  --accent: #8b5a34;
+  --accent-ink: #6e4528;
+  --accent-soft: #efe3d4;
 
   --err: #a23b28;
   --err-soft: #f1d9d0;
@@ -36,9 +36,7 @@
   --r: 10px;
   --r-sm: 8px;
 
-  /* Component sizing tokens. The values mirror the finished design so
-     switching to them changes nothing, but every control now reads its
-     size from one centralized place instead of inline literals. */
+  /* Component sizing tokens. */
   --btn-h: 38px;
   --btn-h-sm: 30px;
   --btn-h-wide: 44px;
@@ -119,7 +117,7 @@ small {
   font-size: 1.1rem;
 }
 
-/* ---------- Frame & page header ---------- */
+/* Frame and page header */
 .frame {
   flex: 1 1 auto;
   width: 0;
@@ -197,7 +195,7 @@ main {
   text-transform: uppercase;
 }
 
-/* ---------- Buttons & links ---------- */
+/* Buttons and links */
 .actions {
   display: flex;
   gap: var(--s3);
@@ -321,7 +319,7 @@ main {
   color: var(--err);
 }
 
-/* ---------- Cards, stats, columns ---------- */
+/* Cards, stats and columns */
 .grid3 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -417,7 +415,7 @@ a.stat:hover {
   color: var(--muted);
 }
 
-/* ---------- Lists ---------- */
+/* Lists */
 .list {
   display: flex;
   flex-direction: column;
@@ -497,7 +495,7 @@ a.item:hover h4 {
   text-underline-offset: 3px;
 }
 
-/* ---------- Summary (dark card) ---------- */
+/* Summary, dark card */
 .summary {
   background: var(--ink);
   color: var(--surface);
@@ -533,7 +531,7 @@ a.item:hover h4 {
   background: rgba(249, 244, 232, 0.2);
 }
 
-/* ---------- Appointments ---------- */
+/* Appointments */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -675,7 +673,7 @@ a.item:hover h4 {
   gap: var(--s2);
 }
 
-/* ---------- Calendar ---------- */
+/* Calendar */
 .calhead {
   display: flex;
   justify-content: space-between;
@@ -746,7 +744,7 @@ a.item:hover h4 {
   color: var(--accent-soft);
 }
 
-/* ---------- Chips, search ---------- */
+/* Chips and search */
 .chips {
   display: flex;
   gap: var(--s2);
@@ -788,7 +786,7 @@ a.item:hover h4 {
   flex-wrap: wrap;
 }
 
-/* ---------- POS ---------- */
+/* POS */
 .products {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -1144,7 +1142,7 @@ a.item:hover h4 {
   justify-content: center;
 }
 
-/* ---------- Forms ---------- */
+/* Forms */
 label {
   display: block;
   font-size: 0.8rem;
@@ -1251,7 +1249,7 @@ input[type="checkbox"] {
   outline-offset: 2px;
 }
 
-/* ---------- Tables ---------- */
+/* Tables */
 .tablewrap {
   overflow: hidden;
   display: flex;
@@ -1362,7 +1360,7 @@ td.num {
   border: 1px solid var(--line);
 }
 
-/* ---------- Services ---------- */
+/* Services */
 .service-card {
   padding: var(--s5);
   display: flex;
@@ -1398,7 +1396,7 @@ td.num {
   margin-top: var(--s3);
 }
 
-/* ---------- Reports ---------- */
+/* Reports */
 .bar-chart {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -1434,7 +1432,7 @@ td.num {
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- Staff ---------- */
+/* Staff */
 .staff-item {
   flex-wrap: wrap;
   row-gap: var(--s3);
@@ -1492,7 +1490,7 @@ td.num {
   font-weight: 400;
 }
 
-/* ---------- Account / profile ---------- */
+/* Account and profile */
 .kv {
   display: grid;
   gap: var(--s2);
@@ -1515,7 +1513,7 @@ td.num {
   font-weight: 600;
 }
 
-/* ---------- Auth cards (first login) ---------- */
+/* Auth cards, first login */
 body.auth {
   align-items: center;
   justify-content: center;
@@ -1548,7 +1546,7 @@ body.auth {
   font-size: 0.9rem;
 }
 
-/* ---------- Modal ---------- */
+/* Modal */
 .modal {
   position: fixed;
   inset: 0;
@@ -1609,7 +1607,7 @@ body.auth {
   max-height: 200px;
 }
 
-/* ---------- Profile popup ---------- */
+/* Profile popup */
 
 .popup-backdrop {
   position: fixed;
@@ -1805,7 +1803,7 @@ body.auth {
   background: var(--line);
 }
 
-/* ---------- Toast ---------- */
+/* Toast */
 .toast {
   position: fixed;
   left: 50%;
@@ -1853,7 +1851,7 @@ body.auth {
   flex: none;
 }
 
-/* ---------- Responsive ---------- */
+/* Responsive */
 /* Two column layouts stay side by side until the window is genuinely
    small. Browser zoom shrinks the page width, and the panels should not
    stack just because someone zoomed in for a presentation. */
@@ -1972,7 +1970,7 @@ body.auth {
   }
 }
 
-/* ---------- POS interaction polish ---------- */
+/* POS interaction polish */
 
 /* Give primary buttons and controls a clear pressed state. */
 .btn:active,
@@ -2093,7 +2091,7 @@ body.auth {
   opacity: 0.42;
 }
 
-/* ---------- Recent orders and receipt modal ---------- */
+/* Recent orders and receipt modal */
 
 #receipt-modal {
   align-items: center;
@@ -2111,7 +2109,7 @@ body.auth {
   place-items: center;
 }
 
-/* ---------- Import & export ---------- */
+/* Import and export */
 
 .data-toolbar {
   display: flex;
@@ -2534,7 +2532,7 @@ body.auth {
   }
 }
 
-/* ---------- Admin data management ---------- */
+/* Admin data management */
 
 .data-management {
   margin-top: var(--s4);
@@ -2687,6 +2685,45 @@ body.auth {
     width: 36px;
     height: 36px;
   }
+}
+
+/* Data maintenance confirmation dialog */
+
+.maintenance-modal__summary {
+  margin: 0 0 var(--s3);
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.maintenance-modal__count {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin: 0 0 var(--s3);
+  color: var(--err);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.maintenance-modal__count .data-management__notice-icon {
+  flex: none;
+}
+
+.maintenance-modal__details {
+  margin: 0 0 var(--s4);
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.maintenance-modal__buttons {
+  align-items: start;
+}
+
+.maintenance-modal__buttons .btn {
+  height: var(--btn-h-wide);
 }
 
 /* Administration overview and data management pages */
@@ -2909,7 +2946,7 @@ a.admin-tool--danger:hover {
   }
 }
 
-/* ---------- Profile page ---------- */
+/* Profile page */
 
 .profile-layout {
   display: grid;
@@ -3028,7 +3065,7 @@ a.admin-tool--danger:hover {
   }
 }
 
-/* ---------- Enhanced profile page ---------- */
+/* Enhanced profile page */
 
 .profile-layout {
   display: grid;
@@ -3375,8 +3412,8 @@ a.admin-tool--danger:hover {
   }
 }
 
-/* ---------- Dashboard (single source of truth) ---------- */
-/* One 12-column grid: hero 12 · KPIs 4/4/4 · panels 8/4. */
+/* Dashboard, single source of truth */
+/* One 12 column grid. The hero takes 12, the KPI cards take 4 each and the panels take 8 and 4. */
 
 .dashboard-main {
   --dash-label: #6a5843; /* darker than --muted, passes AA on cream */

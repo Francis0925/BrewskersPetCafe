@@ -62,3 +62,6 @@ Traceback (most recent call last):
     )
     ^
 sqlite3.OperationalError: database is locked
+2026-11-11 13:39:21,588 WARNING CSRF check failed for /api/admin/reset-data
+2026-11-11 15:59:55,869 WARNING CSRF check failed for /api/admin/reset-data
+2026-11-11 16:02:05,138 WARNING CSRF check failed for /api/admin/reset-data

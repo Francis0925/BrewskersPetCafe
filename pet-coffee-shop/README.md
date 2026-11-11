@@ -20,6 +20,7 @@ pet-coffee-shop/
     errors.py             Custom exceptions: RecordError and its subclasses
     models.py             Record classes: Product, Service, Appointment, Cart
     structures.py         Hand-written HashTable, Queue and Stack
+    algorithms.py        Hand-written merge sort, binary search and linear search
     pos_state.py          Product index, order queue and undo stacks built on them
     csv_utils.py          CSV import and export helpers
     activity.py           Activity log recording
@@ -41,7 +42,7 @@ pet-coffee-shop/
   scripts/
     setup.py              Creates a fresh database with seed data
     backup_db.py          Backup, verify and restore the database
-    make_demo_data.py     Builds the sample-data CSVs and ZIP for demos
+  docs/                   Project analysis and database documentation with the ERD
   sample-data/            Demo records to import for presentations
   petcoffeeshop.db        Live SQLite database, created by setup.py
   backups/                Dated database backups, created by backup_db.py
@@ -54,6 +55,7 @@ pet-coffee-shop/
 - Order queue: queued orders show their place in line, Complete next in line serves the front of the queue, and Undo last change reverses the most recent status update.
 - POS: cart has an Undo button that restores the cart to how it was before the last change.
 - Inventory: add a product picture (JPG/PNG/WebP, max 2 MB), change picture later, thumbnails in Inventory and POS.
+- Products: names must be unique. Adding an existing name is rejected with a clear message, and a unique index in the database enforces the same rule.
 - Import and export:
   - One table as a separate CSV file: Products, Services, Orders, Appointments
   - All data as separate CSV files in one ZIP
@@ -84,6 +86,12 @@ py scripts/backup_db.py --restore
 ```
 
 If the live database file is deleted or empty, running backup_db.py restores the latest backup instead of creating a blank database.
+
+## Documentation
+
+- docs/PROJECT_ANALYSIS.md explains the problem, purpose, users by role, information requirements and scope.
+- docs/DATABASE.md documents every table, column, key, relationship, index and the normalization reasoning.
+- docs/erd.png is the entity relationship diagram of the database.
 
 ## Notes
 

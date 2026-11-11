@@ -7,6 +7,7 @@ import decimal
 from flask import jsonify, render_template, request
 
 from backend.auth import app, connect_db
+from backend.algorithms import merge_sort
 from backend.config import ORDER_STATUSES
 from backend.errors import InsufficientPaymentError, OutOfStockError
 from backend.helpers import query, run
@@ -82,7 +83,7 @@ def _render_orders(user, page):
     if status_filter == "queued":
         for order in recent_orders:
             order["queue_position"] = order_queue.position(order["order_id"])
-        recent_orders.sort(key=lambda o: (o["queue_position"] is None, o["queue_position"] or 0))
+        recent_orders = merge_sort(recent_orders, key=lambda o: (o["queue_position"] is None, o["queue_position"] or 0))
 
     counts = query(
         """SELECT COALESCE(status, 'completed') AS status, COUNT(*) AS n

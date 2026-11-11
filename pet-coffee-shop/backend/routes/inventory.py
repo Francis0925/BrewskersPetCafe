@@ -8,6 +8,7 @@ from flask import jsonify, render_template, request
 from werkzeug.utils import secure_filename
 
 from backend.auth import app
+from backend.algorithms import binary_search, merge_sort
 from backend.database import PROJECT_ROOT
 from backend.helpers import query, run
 from backend.permissions import require
@@ -86,6 +87,14 @@ def add_product(user):
 
     if not name or not category or price < 0 or stock < 0:
         return jsonify(ok=False, error="Fill in name, category, price and stock"), 400
+
+    # A product name can only exist once, including hidden items, so the
+    # manual form stays consistent with the CSV import, which updates an
+    # existing name instead of adding a second row. Binary search needs a
+    # sorted list, so the names are merge sorted first.
+    names = merge_sort([row["name"] for row in query("SELECT name FROM products")])
+    if binary_search(names, name) >= 0:
+        return jsonify(ok=False, error="A product with this name already exists"), 409
 
     image_path = None
     if upload is not None and upload.filename:

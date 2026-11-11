@@ -169,22 +169,22 @@ def setup():
     )
 
     menu = [
-    ("Coffee", "Matcha Latte", 155),
-    ("Coffee", "Caramel Macchiato", 150),
-    ("Coffee", "Spanish Latte", 150),
-    ("Coffee", "Cold Brew", 145),
-    ("Coffee", "Mocha", 140),
-    ("Pastry", "Cheesecake", 145),
-    ("Pastry", "Tiramisu Slice", 140),
-    ("Pastry", "Cinnamon Roll", 100),
-    ("Pastry", "Pain au Chocolat", 95),
-    ("Pastry", "Butter Croissant", 85),
-    ("Pet Treats", "Salmon Strips", 95),
-    ("Pet Treats", "Chicken Jerky", 90),
-    ("Pet Treats", "Bacon Bites", 75),
-    ("Pet Treats", "Peanut Butter Cookie", 70),
-    ("Pet Treats", "Tuna Treat", 70),
-]
+        ("Coffee", "Cappuccino", 130),
+        ("Coffee", "Caramel Macchiato", 150),
+        ("Coffee", "Cold Brew", 145),
+        ("Coffee", "Espresso", 90),
+        ("Coffee", "Matcha Latte", 155),
+        ("Pastry", "Banana Bread", 75),
+        ("Pastry", "Pain au Chocolat", 95),
+        ("Pastry", "Cinnamon Roll", 100),
+        ("Pastry", "Tiramisu Slice", 140),
+        ("Pastry", "Chocolate Cookie", 60),
+        ("Pet Treats", "Bacon Bites", 75),
+        ("Pet Treats", "Chicken Jerky", 90),
+        ("Pet Treats", "Salmon Strips", 95),
+        ("Pet Treats", "Peanut Butter Cookie", 70),
+        ("Pet Treats", "Tuna Treat", 70),
+    ]
 
     cursor.executemany(
         "INSERT INTO products "

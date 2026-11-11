@@ -296,6 +296,15 @@ def migrate_db():
         conn.execute("CREATE INDEX IF NOT EXISTS idx_products_status ON products(status, category)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_activity_created ON activity_log(created_at DESC)")
 
+        # Product names stay unique at the database level too. The index is
+        # only built when the rows already have no repeated names, so an
+        # older file with duplicates still starts up cleanly.
+        duplicate_names = conn.execute(
+            "SELECT 1 FROM products GROUP BY name HAVING COUNT(*) > 1 LIMIT 1"
+        ).fetchone()
+        if not duplicate_names:
+            conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_products_name ON products(name)")
+
         conn.commit()
     finally:
         conn.close()

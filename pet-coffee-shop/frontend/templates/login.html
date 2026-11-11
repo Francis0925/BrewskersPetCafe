@@ -30,7 +30,7 @@
     />
 
     <style>
-      /* ===== Brewskers staff login =====
+      /* Brewskers staff login
          Locked to the viewport on desktop/tablet (no page scroll).
          Card matches the design reference: 744 x 536. */
 
@@ -99,7 +99,7 @@
         overflow: hidden;
       }
 
-      /* ---------- Left: form ---------- */
+      /* Left side, sign in form */
       .floating-container .left-side {
         display: flex;
         align-items: center;
@@ -434,7 +434,7 @@
         color: var(--muted);
       }
 
-      /* ---------- Right: branding ---------- */
+      /* Right side, branding */
       .floating-container .right-side {
         position: relative;
         display: flex;
@@ -566,7 +566,24 @@
         font-weight: 600;
       }
 
-      /* ---------- Responsive ---------- */
+      .console-label {
+  margin: 6px 0 0;
+  text-align: center;
+  font-size: 8.5px;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.side-caption {
+  margin: 8px 0 0;
+  font-size: 9px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* Responsive */
       @media (max-width: 960px) and (min-width: 761px) {
         .floating-container {
           max-width: 640px;
@@ -714,6 +731,8 @@
             <p class="foot">
               Accounts are created by the admin.
             </p>
+
+            <p class="console-label">Brewskers staff console</p>
           </form>
 
           <form class="view" id="forgot" novalidate>
@@ -808,7 +827,7 @@
         <div class="brand">
           <div class="brand-text">
             <h2>Brewskers</h2>
-            <p>PET&nbsp;·&nbsp;CAFÉ&nbsp;·&nbsp;POS</p>
+            <p>PET&nbsp;CAFÉ&nbsp;·&nbsp;STAFF&nbsp;CONSOLE</p>
           </div>
         </div>
 
@@ -865,6 +884,8 @@
           "Pull up a chair, bring your pets, and stay a while."
           <small>— HOUSE MOTTO</small>
         </blockquote>
+
+        <p class="side-caption">One workspace for your café and pet lounge.</p>
       </aside>
     </div>
 

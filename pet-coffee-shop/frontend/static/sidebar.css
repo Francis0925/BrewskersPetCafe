@@ -328,9 +328,9 @@
 
 /* Summary card uses the sidebar color */
 .sidebar-summary {
-  background: #efe7d6;
+  background: var(--sidebar);
 }
 
 .sidebar-summary__grid > div {
-  background: rgba(249, 244, 232, 0.45);
+  background: rgba(246, 243, 236, 0.45);
 }

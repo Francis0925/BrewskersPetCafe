@@ -8,6 +8,7 @@
 
 import threading
 
+from backend.algorithms import linear_search, merge_sort
 from backend.helpers import query
 from backend.structures import HashTable, Queue, Stack
 
@@ -42,7 +43,8 @@ class ProductIndex:
             if not self._loaded:
                 self._load()
             items = [p for p in self._table.values() if p["status"] == "available" and p["stock"] > 0]
-        return sorted(items, key=lambda p: (p["category"], p["name"]))
+        # Merge sort keeps the POS grid grouped by category then name.
+        return merge_sort(items, key=lambda p: (p["category"], p["name"]))
 
 
 class OrderQueue:
@@ -96,9 +98,11 @@ class OrderQueue:
         """1-based place in line, or None."""
         with _lock:
             self._ensure()
-            for place, order in enumerate(self._queue.to_list(), start=1):
-                if order["order_id"] == order_id:
-                    return place
+            # Linear search because the queue is ordered by arrival time,
+            # not by order_id, so a binary search cannot be used here.
+            index = linear_search(self._queue.to_list(), lambda o: o["order_id"] == order_id)
+            if index >= 0:
+                return index + 1
         return None
 
     def snapshot(self):

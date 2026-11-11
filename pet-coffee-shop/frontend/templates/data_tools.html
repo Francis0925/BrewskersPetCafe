@@ -365,8 +365,11 @@
         <h3>Use these actions carefully</h3>
 
         <p>
-          These operations affect business records. Staff accounts and
-          active sessions are preserved. Consider creating a backup first.
+          Every action opens a confirmation dialog that explains what will be
+          affected and how many records it will touch. Permanent deletions
+          and bulk resets also ask you to type DELETE first. Staff accounts,
+          active sessions and store settings are always preserved. Consider
+          creating a backup before you continue.
         </p>
       </div>
     </div>
@@ -396,11 +399,7 @@
             <button
               class="btn danger small"
               type="button"
-              onclick="resetData(
-                'reset_stock',
-                'reset all product stock to zero',
-                'Every product keeps its record, but its stock count will be set to zero.'
-              )"
+              onclick="openMaintenance('reset_stock')"
             >
               Reset stock
             </button>
@@ -427,11 +426,7 @@
             <button
               class="btn danger small"
               type="button"
-              onclick="resetData(
-                'deactivate_products',
-                'deactivate all products from inventory and the POS',
-                'Every product keeps its record, but it will no longer be sold.'
-              )"
+              onclick="openMaintenance('deactivate_products')"
             >
               Deactivate products
             </button>
@@ -457,11 +452,7 @@
             <button
               class="btn danger small"
               type="button"
-              onclick="resetData(
-                'deactivate_services',
-                'deactivate all services from booking',
-                'Every service keeps its record, but it will no longer take new bookings.'
-              )"
+              onclick="openMaintenance('deactivate_services')"
             >
               Deactivate services
             </button>
@@ -494,11 +485,7 @@
             <button
               class="btn danger small"
               type="button"
-              onclick="resetData(
-                'clear_appointments',
-                'permanently delete all appointments',
-                'All appointment records and scheduled guest information will be permanently deleted.'
-              )"
+              onclick="openMaintenance('clear_appointments')"
             >
               Clear appointments
             </button>
@@ -523,11 +510,7 @@
             <button
               class="btn danger small"
               type="button"
-              onclick="resetData(
-                'clear_cancelled_appointments',
-                'permanently delete all cancelled appointments',
-                'Only cancelled appointment records will be permanently deleted.'
-              )"
+              onclick="openMaintenance('clear_cancelled_appointments')"
             >
               Clear cancelled
             </button>
@@ -552,11 +535,7 @@
             <button
               class="btn danger small"
               type="button"
-              onclick="resetData(
-                'clear_completed_appointments',
-                'permanently delete all completed appointments',
-                'Only completed appointment records will be permanently deleted.'
-              )"
+              onclick="openMaintenance('clear_completed_appointments')"
             >
               Clear completed
             </button>
@@ -583,11 +562,7 @@
             <button
               class="btn danger small"
               type="button"
-              onclick="resetData(
-                'clear_orders',
-                'permanently clear all order and receipt history',
-                'All orders, order items, sales totals, and receipt history will be permanently deleted.'
-              )"
+              onclick="openMaintenance('clear_orders')"
             >
               Clear orders
             </button>
@@ -613,11 +588,7 @@
             <button
               class="btn danger small"
               type="button"
-              onclick="resetData(
-                'clear_customers',
-                'remove customer names from orders while keeping the orders',
-                'Customer names on orders will be removed, but the orders and sales totals will stay for reporting.'
-              )"
+              onclick="openMaintenance('clear_customers')"
             >
               Clear customers
             </button>
@@ -648,11 +619,7 @@
             <button
               class="btn danger small"
               type="button"
-              onclick="resetData(
-                'clear_activity',
-                'permanently clear all activity log entries',
-                'All activity log entries will be permanently deleted.'
-              )"
+              onclick="openMaintenance('clear_activity')"
             >
               Clear activity
             </button>
@@ -678,11 +645,7 @@
             <button
               class="btn danger small"
               type="button"
-              onclick="resetData(
-                'clear_logins',
-                'permanently clear login history entries',
-                'Only historical login records will be removed. Active sessions and staff accounts will not be affected.'
-              )"
+              onclick="openMaintenance('clear_logins')"
             >
               Clear logins
             </button>
@@ -706,11 +669,7 @@
             <button
               class="btn danger small"
               type="button"
-              onclick="resetData(
-                'clear_archived',
-                'permanently remove archived records',
-                'Archived product records and their order item history will be permanently removed.'
-              )"
+              onclick="openMaintenance('clear_archived')"
             >
               Clear archived
             </button>
@@ -725,6 +684,59 @@
     </p>
   </div>
 </main>
+
+<div
+  class="modal"
+  id="maintenance-modal"
+  onclick="if(event.target === this) closeMaintenanceModal()"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="maintenance-title"
+>
+  <form id="maintenance-form" onsubmit="submitMaintenance(event)">
+    <h2 id="maintenance-title"></h2>
+
+    <p class="maintenance-modal__summary" id="maintenance-summary"></p>
+
+    <div class="maintenance-modal__count">
+      <span class="data-management__notice-icon" aria-hidden="true">!</span>
+      <span id="maintenance-count-text"></span>
+    </div>
+
+    <p class="maintenance-modal__details" id="maintenance-details"></p>
+
+    <div id="maintenance-confirm-row" hidden>
+      <label for="maintenance-confirm-input">
+        Type <b id="maintenance-confirm-word">DELETE</b> to confirm. This
+        cannot be undone.
+      </label>
+
+      <input
+        id="maintenance-confirm-input"
+        type="text"
+        autocomplete="off"
+        spellcheck="false"
+        oninput="updateMaintenanceButton()"
+      />
+    </div>
+
+    <div class="two maintenance-modal__buttons">
+      <button
+        type="button"
+        class="btn ghost"
+        onclick="closeMaintenanceModal()"
+      >
+        Cancel
+      </button>
+
+      <button
+        type="submit"
+        class="btn danger"
+        id="maintenance-confirm-button"
+      ></button>
+    </div>
+  </form>
+</div>
 {% endblock %}
 
 {% block script %}
@@ -1148,53 +1160,174 @@ async function restoreDatabase(event) {
   setTimeout(() => location.reload(), 700);
 }
 
-async function resetData(action, description, details) {
-  const confirmation = prompt(
-    `Warning: this will ${description}.\n\n` +
-    (details ? `${details}\n\n` : "") +
-    "This action cannot be undone.\n" +
-    "Staff accounts and active sessions will not be affected.\n\n" +
-    "Type DELETE to continue."
-  );
+const MAINTENANCE_ACTIONS = {{ maintenance_actions|tojson }};
 
-  if (confirmation === null) return;
+let maintenanceCounts = null;
+let pendingMaintenanceAction = null;
 
-  if (confirmation.trim().toUpperCase() !== "DELETE") {
-    toast(
-      "Type DELETE to confirm",
-      "error"
-    );
+const maintenanceModal =
+  document.getElementById("maintenance-modal");
 
-    return;
+const maintenanceInput =
+  document.getElementById("maintenance-confirm-input");
+
+function maintenanceSpec() {
+  return MAINTENANCE_ACTIONS[pendingMaintenanceAction] || {};
+}
+
+function closeMaintenanceModal() {
+  maintenanceModal.classList.remove("open");
+  pendingMaintenanceAction = null;
+}
+
+function maintenanceCountText(action, info) {
+  const spec = MAINTENANCE_ACTIONS[action];
+
+  if (!spec || info === undefined) {
+    return "Could not load the affected record count.";
   }
 
-  const result = await api(
-    "/api/admin/reset-data",
-    {
-      action,
-      confirmation: confirmation.trim().toUpperCase()
+  if (!info || info.count === 0) {
+    return "No records match this action right now.";
+  }
+
+  let text = `This will affect ${info.count} ${spec.count_noun}`;
+
+  if (info.related) {
+    text += ` and ${info.related} ${spec.related_noun}`;
+  }
+
+  return `${text}.`;
+}
+
+async function openMaintenance(action) {
+  const spec = MAINTENANCE_ACTIONS[action];
+
+  if (!spec) return;
+
+  pendingMaintenanceAction = action;
+
+  document.getElementById("maintenance-title").textContent = spec.title;
+  document.getElementById("maintenance-summary").textContent = spec.summary;
+  document.getElementById("maintenance-details").textContent = spec.details;
+
+  const confirmButton =
+    document.getElementById("maintenance-confirm-button");
+
+  const confirmRow =
+    document.getElementById("maintenance-confirm-row");
+
+  confirmButton.textContent = spec.button;
+
+  if (spec.confirm_word) {
+    confirmRow.hidden = false;
+    document.getElementById("maintenance-confirm-word").textContent =
+      spec.confirm_word;
+    maintenanceInput.value = "";
+    confirmButton.disabled = true;
+  } else {
+    confirmRow.hidden = true;
+    confirmButton.disabled = false;
+  }
+
+  const countLine =
+    document.getElementById("maintenance-count-text");
+
+  countLine.textContent = "Counting affected records…";
+
+  if (!maintenanceCounts) {
+    const result = await api(
+      "/api/admin/reset-data/preview",
+      {},
+      "GET"
+    );
+
+    maintenanceCounts = result.ok ? result.actions : {};
+  }
+
+  countLine.textContent = maintenanceCountText(
+    action,
+    maintenanceCounts[action]
+  );
+
+  maintenanceModal.classList.add("open");
+
+  if (spec.confirm_word) {
+    maintenanceInput.focus();
+  } else {
+    confirmButton.focus();
+  }
+}
+
+function updateMaintenanceButton() {
+  const spec = maintenanceSpec();
+
+  if (!spec.confirm_word) return;
+
+  const typed = maintenanceInput.value.trim().toUpperCase();
+  document.getElementById("maintenance-confirm-button").disabled =
+    typed !== spec.confirm_word;
+}
+
+async function submitMaintenance(event) {
+  event.preventDefault();
+
+  const spec = maintenanceSpec();
+
+  if (!pendingMaintenanceAction) return;
+
+  const payload = { action: pendingMaintenanceAction };
+
+  if (spec.confirm_word) {
+    const typed = maintenanceInput.value.trim().toUpperCase();
+
+    if (typed !== spec.confirm_word) {
+      toast(`Type ${spec.confirm_word} to confirm`, "error");
+
+      return;
     }
-  );
 
-  if (!result.ok) {
-    toast(
-      result.error ||
-      "Could not clear the selected data",
-      "error"
-    );
-
-    return;
+    payload.confirmation = typed;
   }
 
-  toast(
-    result.message ||
-    "Data cleared successfully",
-    "success"
-  );
+  const confirmButton =
+    document.getElementById("maintenance-confirm-button");
 
-  setTimeout(() => {
-    location.reload();
-  }, 700);
+  confirmButton.disabled = true;
+
+  try {
+    const result = await api("/api/admin/reset-data", payload);
+
+    if (!result.ok) {
+      toast(
+        result.error || "Could not clear the selected data",
+        "error"
+      );
+
+      if (spec.confirm_word) {
+        updateMaintenanceButton();
+      } else {
+        confirmButton.disabled = false;
+      }
+
+      return;
+    }
+
+    toast(
+      result.message || "Data cleared successfully",
+      "success"
+    );
+
+    setTimeout(() => {
+      location.reload();
+    }, 700);
+  } catch (error) {
+    console.error(error);
+
+    toast("Could not reach the server", "error");
+
+    confirmButton.disabled = false;
+  }
 }
 </script>
 {% endblock %}
