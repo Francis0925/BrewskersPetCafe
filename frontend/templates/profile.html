@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+{% import "_partials/page_header.html" as ph %}
+
+{% block page %}
+<main>
+  {{
+    ph.page_header(
+      title    = "My profile & security",
+      subtitle = user.email ~ " · " ~ (user.role | capitalize),
+      action   = '<a class="link" href="/dashboard">‹ Back to dashboard</a>'
+    )
+  }}
+
+  <div class="profile-layout">
+    <section class="panel profile-overview">
+      <div class="profile-overview__header">
+        <div class="avatar profile-avatar-lg">
+          {{ user.username[0] | upper }}
+        </div>
+
+        <div class="profile-overview__identity">
+          <span class="eyebrow">Signed-in staff account</span>
+
+          <h2>{{ user.username }}</h2>
+
+          <p>{{ user.email }}</p>
+
+          <div class="profile-overview__badges">
+            <span class="badge profile-role-badge">
+              {{ user.role | capitalize }} access
+            </span>
+
+            <span class="badge muted">
+              Active account
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-section-heading">
+        <div>
+          <span class="eyebrow">Account information</span>
+          <h2>Personal details</h2>
+        </div>
+
+        <small>Managed by your administrator</small>
+      </div>
+
+      <dl class="kv profile-details">
+        <div class="box">
+          <dt>Username</dt>
+          <dd>{{ user.username }}</dd>
+        </div>
+
+        <div class="box">
+          <dt>Role</dt>
+          <dd>{{ user.role | capitalize }}</dd>
+        </div>
+
+        <div class="box">
+          <dt>Email address</dt>
+          <dd>{{ user.email }}</dd>
+        </div>
+
+        <div class="box">
+          <dt>Last login</dt>
+          <dd>{{ user.last_login_at or "First session" }}</dd>
+        </div>
+
+        <div class="box">
+          <dt>Member since</dt>
+          <dd>{{ user.created_at or "—" }}</dd>
+        </div>
+      </dl>
+
+      <div class="profile-account-note">
+        <span
+          class="profile-account-note__icon"
+          aria-hidden="true"
+        >
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 11v5M12 8h.01" />
+          </svg>
+        </span>
+
+        <div>
+          <strong>Account details are administrator-managed</strong>
+
+          <p>
+            Contact an administrator if your username, email, or role
+            needs to be changed.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <div class="profile-side-stack">
+      <section
+        class="panel profile-security"
+        id="password"
+      >
+        <div class="panel-head">
+          <div>
+            <span class="eyebrow">Security</span>
+            <h2>Change password</h2>
+          </div>
+
+          <span
+            class="profile-security__icon"
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 24 24">
+              <rect x="5" y="10" width="14" height="10" rx="2" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v2" />
+            </svg>
+          </span>
+        </div>
+
+        <p class="profile-security__intro">
+          Choose a strong password that you do not use for another
+          account. You will remain signed in after changing it.
+        </p>
+
+        <form
+          class="profile-password-form"
+          onsubmit="changeOwnPassword(event)"
+        >
+          <div class="form-group">
+            <label for="current-password">
+              Current password
+            </label>
+
+            <input
+              id="current-password"
+              name="current_password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="new-password">
+              New password
+            </label>
+
+            <input
+              id="new-password"
+              name="new_password"
+              type="password"
+              minlength="8"
+              autocomplete="new-password"
+              required
+            />
+
+            <small class="field-help">
+              Use at least 8 characters.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="confirm-password">
+              Confirm new password
+            </label>
+
+            <input
+              id="confirm-password"
+              name="confirm"
+              type="password"
+              minlength="8"
+              autocomplete="new-password"
+              required
+            />
+          </div>
+
+          <button
+            class="btn wide"
+            type="submit"
+          >
+            Update password
+          </button>
+        </form>
+      </section>
+
+      <section class="panel profile-security-tip">
+        <div
+          class="profile-security-tip__icon"
+          aria-hidden="true"
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z" />
+            <path d="M8.5 12l2.2 2.2 4.8-5" />
+          </svg>
+        </div>
+
+        <div>
+          <span class="eyebrow">Security reminder</span>
+          <h2>Protect your account</h2>
+
+          <ul>
+            <li>Use a unique staff password</li>
+            <li>Do not share your login details</li>
+            <li>Lock the screen when away</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+{% endblock %}
+
+{% block script %}
+<script>
+async function changeOwnPassword(event) {
+  event.preventDefault();
+
+  const form = event.target;
+
+  const currentPassword =
+    form.current_password.value;
+
+  const newPassword =
+    form.new_password.value;
+
+  const confirmation =
+    form.confirm.value;
+
+  if (newPassword !== confirmation) {
+    toast("Passwords do not match", "error");
+    return;
+  }
+
+  if (newPassword.length < 8) {
+    toast(
+      "Password must be at least 8 characters",
+      "error"
+    );
+    return;
+  }
+
+  const submitButton =
+    form.querySelector('button[type="submit"]');
+
+  const originalText =
+    submitButton.textContent;
+
+  submitButton.disabled = true;
+  submitButton.textContent = "Updating…";
+
+  try {
+    const result = await api(
+      "/api/profile/change-password",
+      {
+        current_password: currentPassword,
+        new_password: newPassword,
+        confirm: confirmation
+      }
+    );
+
+    if (result.ok) {
+      toast("Password updated", "success");
+      form.reset();
+    } else {
+      toast(
+        result.error ||
+        "Could not update password",
+        "error"
+      );
+    }
+  } catch (error) {
+    toast(
+      "Could not update password",
+      "error"
+    );
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = originalText;
+  }
+}
+</script>
+{% endblock %}

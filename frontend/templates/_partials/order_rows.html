@@ -1,0 +1,49 @@
+{% for order in orders %}
+  {% set s = order.status or 'completed' %}
+  <tr data-order-id="{{ order.order_id }}">
+    {% if page == 'queued' %}<td>#{{ order.queue_position or '—' }}</td>{% endif %}
+    <td><b>{{ order.order_no_html|safe }}</b></td>
+    <td>{{ order.customer_html|safe }}</td>
+    <td>{{ order.order_date }}</td>
+    <td><span class="badge muted">{{ order.payment_html|safe }}</span></td>
+    <td>
+      <span class="badge {{ 'queued' if s == 'queued' else 'ok' if s == 'completed' else 'low' }}">
+        {{ s|capitalize }}
+      </span>
+    </td>
+    <td class="num">{{ "₱{:,.2f}".format(order.total_amount) }}</td>
+    <td>{{ order.cashier_html|safe }}</td>
+    <td>
+      <div class="row-actions">
+        <button class="btn ghost small" type="button" onclick="openSavedReceipt({{ order.order_id }})">Reprint</button>
+        {% if s == 'queued' %}
+          <button class="btn small" type="button" onclick="setOrderStatus({{ order.order_id }}, 'completed', 'Complete')">Complete</button>
+          <button class="btn danger small" type="button" onclick="setOrderStatus({{ order.order_id }}, 'cancelled', 'Cancel')">Cancel</button>
+        {% elif s == 'completed' %}
+          <button class="btn danger small" type="button" onclick="setOrderStatus({{ order.order_id }}, 'cancelled', 'Cancel')">Cancel</button>
+          <button class="btn ghost small" type="button" onclick="setOrderStatus({{ order.order_id }}, 'queued', 'Send back to queued')">Re-queue</button>
+        {% else %}
+          <button class="btn ghost small" type="button" onclick="setOrderStatus({{ order.order_id }}, 'queued', 'Send back to queued')">Re-queue</button>
+        {% endif %}
+      </div>
+    </td>
+  </tr>
+{% else %}
+  <tr>
+    <td colspan="{{ 9 if page == 'queued' else 8 }}">
+      <div class="empty order-history-empty">
+        {% if search %}
+          <strong>No orders match “{{ search }}”</strong>
+          <p>Try a different customer name, order number or payment method.</p>
+          <button type="button" class="btn ghost small js-clear-order-search">Clear search</button>
+        {% elif page == 'queued' %}
+          <strong>No queued orders</strong>
+          <p>New POS orders will appear here until they are completed or cancelled.</p>
+        {% else %}
+          <strong>No orders in history yet</strong>
+          <p>Completed and cancelled orders will appear here.</p>
+        {% endif %}
+      </div>
+    </td>
+  </tr>
+{% endfor %}

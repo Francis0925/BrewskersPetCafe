@@ -1,0 +1,7 @@
+* text=auto
+*.db binary
+*.png binary
+*.jpg binary
+*.webp binary
+*.jfif binary
+*.zip binary

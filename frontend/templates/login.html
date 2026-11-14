@@ -1,0 +1,1321 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta
+      name="csrf-token"
+      content="{{ csrf_token() }}"
+    />
+
+    <title>Brewskers – Staff login</title>
+
+    <link
+      rel="icon"
+      type="image/png"
+      href="{{ url_for('static', filename='Favicon.png') }}"
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+
+    <style>
+      /* Brewskers staff login
+         Locked to the viewport on desktop/tablet (no page scroll).
+         Card matches the design reference: 744 x 536. */
+
+      html,
+      body.auth {
+        height: 100%;
+        min-height: 0;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      body.auth {
+        --page: #38251d;
+        --surface: #fff9ed;
+        --sidebar: #f8f2e6;
+        --field: #eee4c7;
+        --inset: #eee4c7;
+        --ink: #38251d;
+        --ink-soft: #5a4634;
+        --muted: #927d62;
+        --accent: #6c4f2a;
+        --err: #b3402a;
+        --line: rgba(56, 37, 29, 0.1);
+        --line-strong: rgba(56, 37, 29, 0.16);
+        --font-display: "Fraunces", "DM Serif Display", "Playfair Display", Georgia, serif;
+        --font-ui: "DM Sans", "Inter", system-ui, sans-serif;
+
+        height: 100dvh;
+        max-height: 100dvh;
+        padding: 16px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-ui);
+        color: var(--ink);
+        background:
+          radial-gradient(1200px 600px at 15% 20%, rgba(201, 168, 117, 0.18), transparent 60%),
+          radial-gradient(900px 500px at 85% 90%, rgba(108, 79, 42, 0.18), transparent 60%),
+          var(--page);
+      }
+
+      .floating-container,
+      .floating-container *,
+      .floating-container *::before,
+      .floating-container *::after {
+        box-sizing: border-box;
+      }
+
+      .floating-container h1,
+      .floating-container h2 {
+        margin: 0;
+      }
+
+      .floating-container {
+        display: grid;
+        grid-template-columns: 318px minmax(0, 1fr);
+        width: 100%;
+        max-width: 744px;
+        height: 536px;
+        max-height: 100%;
+        background: var(--surface);
+        border: 0;
+        border-radius: 22px;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        overflow: hidden;
+      }
+
+      /* Left side, sign in form */
+      .floating-container .left-side {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        padding: 0 27px 0 41px;
+      }
+
+      .floating-container .card {
+        width: 100%;
+        max-width: none;
+        height: auto;
+        min-height: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: none;
+        box-shadow: none;
+        overflow: hidden;
+        transition: height 0.3s ease;
+      }
+
+      .view {
+        display: none;
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .view.active {
+        display: block;
+      }
+
+      h1.title {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 22px;
+        line-height: 1.15;
+        margin: 0 0 3px;
+      }
+
+      .sub {
+        margin: 0 0 17px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .field {
+        position: relative;
+        margin-bottom: 11px;
+      }
+
+      .field input,
+      .otp input {
+        width: 100%;
+        margin: 0;
+        background: var(--field);
+        color: var(--ink);
+        border: 2px solid transparent;
+        border-radius: 10px;
+        font: inherit;
+        font-size: 11px;
+        outline: none;
+        box-shadow: none;
+      }
+
+      .field input {
+        height: 35px;
+        padding: 12px 12px 0;
+      }
+
+      .field input[type="password"] {
+        padding-right: 34px;
+      }
+
+      .field input:focus,
+      .otp input:focus {
+        border-color: var(--accent);
+      }
+
+      .field label {
+        position: absolute;
+        left: 12px;
+        top: 10px;
+        margin: 0;
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--muted);
+        pointer-events: none;
+        transition: top 0.15s, font-size 0.15s;
+      }
+
+      .field input:focus + label,
+      .field input:not(:placeholder-shown) + label {
+        top: 4px;
+        font-size: 8px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+      }
+
+      .field.error input,
+      .otp.error input {
+        border-color: var(--err);
+      }
+
+      .field.error,
+      .otp.error {
+        animation: shake 0.35s;
+      }
+
+      @keyframes shake {
+        25% { transform: translateX(-5px); }
+        50% { transform: translateX(5px); }
+        75% { transform: translateX(-2px); }
+      }
+
+      .eye {
+        position: absolute;
+        right: 4px;
+        top: 5px;
+        width: 25px;
+        height: 25px;
+        padding: 0;
+        border: 0;
+        background: none;
+        border-radius: 6px;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+      }
+
+      .eye:hover {
+        background: rgba(56, 37, 29, 0.06);
+      }
+
+      .eye svg {
+        width: 14px;
+        height: 14px;
+        stroke: var(--ink-soft);
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .msg {
+        font-size: 10px;
+        color: var(--err);
+        margin: 0 0 0 2px;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-height 0.2s, opacity 0.2s, margin 0.2s;
+      }
+
+      .field.error + .msg,
+      .otp.error + .msg {
+        max-height: 40px;
+        opacity: 1;
+        margin-bottom: 11px;
+      }
+
+      .otp {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+
+      .otp input {
+        height: 38px;
+        padding: 0;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .otp + .msg {
+        margin-top: 0 !important;
+      }
+
+      .row {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin: 8px 0 12px;
+      }
+
+      .check {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        font-size: 10px;
+        color: var(--ink-soft);
+        white-space: nowrap;
+        cursor: pointer;
+      }
+
+      .check input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .check .box {
+        width: 13px;
+        height: 13px;
+        flex: none;
+        display: grid;
+        place-items: center;
+        border: 1.5px solid var(--ink);
+        border-radius: 3px;
+        background: transparent;
+      }
+
+      .check .box svg {
+        width: 8px;
+        height: 8px;
+        fill: none;
+        stroke: #fff;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        opacity: 0;
+      }
+
+      .check input:checked + .box {
+        background: var(--ink);
+      }
+
+      .check input:checked + .box svg {
+        opacity: 1;
+      }
+
+      .check input:focus-visible + .box {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      .link {
+        padding: 0;
+        border: 0;
+        background: none;
+        font: inherit;
+        font-size: 10px;
+        color: var(--ink-soft);
+        white-space: nowrap;
+        cursor: pointer;
+      }
+
+      .link:hover {
+        color: var(--ink);
+        text-decoration: underline;
+      }
+
+      .back {
+        display: inline-block;
+        margin-bottom: 12px;
+        color: var(--muted);
+      }
+
+      .view .btn {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 100%;
+        height: 32px;
+        padding: 0;
+        border: 0;
+        border-radius: 10px;
+        background: var(--ink);
+        color: #fff;
+        font: 700 11px var(--font-ui);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+
+      .view .btn:hover {
+        background: #2a1b15;
+      }
+
+      .view .btn:disabled {
+        cursor: default;
+        opacity: 0.85;
+      }
+
+      .btn .spin {
+        display: none;
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255, 255, 255, 0.35);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+
+      .btn.loading .t { opacity: 0; }
+      .btn.loading .spin { display: block; }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      .trust {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        margin: 8px 0 4px;
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .trust svg {
+        width: 10px;
+        height: 10px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+      }
+
+      .foot {
+        text-align: center;
+        font-size: 10px;
+        color: var(--muted);
+      }
+
+      /* Right side, branding */
+      .floating-container .right-side {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 8px;
+        min-width: 0;
+        margin: 14px 14px 14px 0;
+        padding: 28px 21px 30px;
+        border: 0;
+        border-radius: 18px;
+        background: var(--sidebar);
+        overflow: hidden;
+      }
+
+      .right-side::after {
+        content: "";
+        position: absolute;
+        right: -40px;
+        bottom: -40px;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(201, 168, 117, 0.45), transparent 70%);
+        pointer-events: none;
+      }
+
+      .brand-text h2 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 15px;
+        line-height: 1.2;
+      }
+
+      .brand-text p {
+        margin-top: 1px;
+        font-size: 7px;
+        letter-spacing: 0.18em;
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      .hero {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0;
+        margin: 0;
+      }
+
+      .login-logo {
+        align-self: center;
+        margin: -6px 0 0;
+      }
+
+      .login-logo img {
+        display: block;
+        width: 150px;
+        height: auto;
+      }
+
+      .hero h1 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 24px;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        margin-bottom: 8px;
+      }
+
+      .hero p {
+        max-width: 250px;
+        margin: 0 0 12px;
+        text-wrap: pretty;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        height: 22px;
+        padding: 0 8px;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.55);
+        font-size: 9px;
+        font-weight: 500;
+        color: var(--ink-soft);
+      }
+
+      .pill svg {
+        width: 10px;
+        height: 10px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .right-side .quote {
+        display: block;
+        position: relative;
+        margin: 0 0 0 28px;
+        padding: 0 0 0 10px;
+        border: 0;
+        border-left: 2px solid #c9a875;
+        font-family: var(--font-display);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ink-soft);
+      }
+
+      .quote small {
+        display: block;
+        margin-top: 4px;
+        font-family: var(--font-ui);
+        font-size: 7.5px;
+        letter-spacing: 0.14em;
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      .console-label {
+  margin: 6px 0 0;
+  text-align: center;
+  font-size: 8.5px;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.side-caption {
+  margin: 8px 0 0;
+  font-size: 9px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* Responsive */
+      @media (max-width: 960px) and (min-width: 761px) {
+        .floating-container {
+          max-width: 640px;
+          grid-template-columns: 290px minmax(0, 1fr);
+        }
+
+        .floating-container .left-side {
+          padding: 0 22px 0 32px;
+        }
+
+        .floating-container .right-side {
+          padding: 26px 18px 28px;
+        }
+      }
+
+      @media (max-height: 570px) and (min-width: 761px) {
+        .login-logo img { width: 100px; }
+        .hero p { display: none; }
+      }
+
+      @media (max-height: 480px) and (min-width: 761px) {
+        .pills { display: none; }
+        .login-logo img { width: 80px; }
+      }
+
+      /* Phones: form first, branding stacked underneath (may scroll if needed) */
+      @media (max-width: 760px) {
+        html,
+        body.auth {
+          overflow-y: auto;
+        }
+
+        body.auth {
+          height: auto;
+          min-height: 100dvh;
+          max-height: none;
+          align-items: flex-start;
+        }
+
+        .floating-container {
+          grid-template-columns: 1fr;
+          height: auto;
+          max-height: none;
+          max-width: 420px;
+          margin: auto;
+        }
+
+        .floating-container .left-side {
+          padding: 32px 24px 24px;
+        }
+
+        .floating-container .right-side {
+          margin: 0 12px 12px;
+          padding: 20px 20px 24px;
+          gap: 14px;
+        }
+
+        .login-logo img { width: 110px; }
+        .right-side .quote { margin-left: 0; }
+      }
+    </style>
+  </head>
+
+  <body class="auth">
+    <div class="floating-container">
+      <div class="left-side">
+        <main class="card" id="card">
+          <form class="view active" id="login" novalidate>
+            <h1 class="title">Welcome back!</h1>
+
+            <p class="sub">
+              Sign in to the Brewskers staff console.
+            </p>
+
+            <div class="field">
+              <input
+                id="l-user"
+                placeholder=" "
+                autocomplete="username"
+              />
+              <label for="l-user">Username</label>
+            </div>
+
+            <div class="msg">Enter your username</div>
+
+            <div class="field">
+              <input
+                id="l-pass"
+                type="password"
+                placeholder=" "
+                autocomplete="current-password"
+              />
+
+              <label for="l-pass">Password</label>
+
+              <button
+                type="button"
+                class="eye"
+                aria-label="Show password"
+                data-target="l-pass"
+              >
+                <svg viewBox="0 0 24 24">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="msg" id="l-pass-msg">
+              Enter your password
+            </div>
+
+            <div class="row">
+              <label class="check">
+                <input type="checkbox" id="remember" />
+
+                <span class="box">
+                  <svg viewBox="0 0 12 12">
+                    <path d="M2 6.5l2.5 2.5L10 3" />
+                  </svg>
+                </span>
+
+                Keep me signed in
+              </label>
+
+              <button type="button" class="link" data-go="forgot">
+                Forgot password?
+              </button>
+            </div>
+
+            <button class="btn">
+              <span class="t">Sign in</span>
+              <span class="spin"></span>
+            </button>
+
+            <p class="trust">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+
+              Encrypted session · Internal use only
+            </p>
+
+            <p class="foot">
+              Accounts are created by the admin.
+            </p>
+
+            <p class="console-label">Brewskers staff console</p>
+          </form>
+
+          <form class="view" id="forgot" novalidate>
+            <button type="button" class="link back" data-go="login">
+              ‹ Back to sign in
+            </button>
+
+            <h1 class="title">Forgot password</h1>
+
+            <p class="sub">
+              We'll send a 6-digit code to your work email.
+            </p>
+
+            <div class="field">
+              <input
+                id="f-email"
+                type="email"
+                placeholder=" "
+                autocomplete="email"
+              />
+              <label for="f-email">Work email</label>
+            </div>
+
+            <div class="msg">Enter a valid email</div>
+
+            <button class="btn">
+              <span class="t">Send code</span>
+              <span class="spin"></span>
+            </button>
+          </form>
+
+          <form class="view" id="reset" novalidate>
+            <button type="button" class="link back" data-go="forgot">
+              ‹ Back
+            </button>
+
+            <h1 class="title">Reset password</h1>
+
+            <p class="sub" id="resetSub">
+              Enter the 6-digit code we sent and choose a new password.
+            </p>
+
+            <div class="otp" id="otp">
+              <input inputmode="numeric" maxlength="1" />
+              <input inputmode="numeric" maxlength="1" />
+              <input inputmode="numeric" maxlength="1" />
+              <input inputmode="numeric" maxlength="1" />
+              <input inputmode="numeric" maxlength="1" />
+              <input inputmode="numeric" maxlength="1" />
+            </div>
+
+            <div class="msg" style="margin-top: -8px">
+              Enter the 6-digit code
+            </div>
+
+            <div class="field">
+              <input
+                id="r-pass"
+                type="password"
+                placeholder=" "
+                autocomplete="new-password"
+              />
+
+              <label for="r-pass">New password</label>
+
+              <button
+                type="button"
+                class="eye"
+                aria-label="Show password"
+                data-target="r-pass"
+              >
+                <svg viewBox="0 0 24 24">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="msg">
+              Password must be at least 8 characters
+            </div>
+
+            <button class="btn">
+              <span class="t">Change password</span>
+              <span class="spin"></span>
+            </button>
+          </form>
+        </main>
+      </div>
+
+      <aside class="right-side">
+        <div class="brand">
+          <div class="brand-text">
+            <h2>Brewskers</h2>
+            <p>PET&nbsp;CAFÉ&nbsp;·&nbsp;STAFF&nbsp;CONSOLE</p>
+          </div>
+        </div>
+
+        <div class="hero">
+          <div class="login-logo">
+            <img
+              src="{{ url_for('static', filename='logo.png') }}"
+              alt="Brewskers"
+            />
+          </div>
+
+          <h1>
+            Run the counter.<br />
+            Pamper the guests.
+          </h1>
+
+          <p>
+            The Brewskers staff console handles orders, inventory, and the
+            pet lounge — all from one place.
+          </p>
+
+          <div class="pills">
+            <span class="pill">
+              <svg viewBox="0 0 24 24">
+                <circle cx="9" cy="21" r="1" />
+                <circle cx="20" cy="21" r="1" />
+                <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6" />
+              </svg>
+
+              Point of sale
+            </span>
+
+            <span class="pill">
+              <svg viewBox="0 0 24 24">
+                <path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z" />
+                <path d="M3.3 7 12 12l8.7-5M12 22V12" />
+              </svg>
+
+              Inventory
+            </span>
+
+            <span class="pill">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <path d="M16 2v4M8 2v4M3 10h18" />
+              </svg>
+
+              Pet bookings
+            </span>
+          </div>
+        </div>
+
+        <blockquote class="quote">
+          "Pull up a chair, bring your pets, and stay a while."
+          <small>— HOUSE MOTTO</small>
+        </blockquote>
+
+        <p class="side-caption">One workspace for your café and pet lounge.</p>
+      </aside>
+    </div>
+
+    <div
+      class="toast"
+      id="toast"
+      role="status"
+      aria-live="polite"
+    ></div>
+
+    <script>
+      const $ = (selector) => document.querySelector(selector);
+      const $$ = (selector) => [
+        ...document.querySelectorAll(selector)
+      ];
+
+      const toast = (text, type = "success") => {
+        const element = $("#toast");
+
+        element.innerHTML =
+          '<span class="toast-ic">' +
+          (type === "error" ? "!" : type === "info" ? "i" : "✓") +
+          '</span><span class="toast-text"></span>';
+
+        element.querySelector(".toast-text").textContent = text;
+        element.className = `toast ${type} show`;
+
+        clearTimeout(toast.timer);
+
+        toast.timer = setTimeout(
+          () => element.classList.remove("show"),
+          type === "error" ? 4000 : 2500
+        );
+      };
+
+      function csrfToken() {
+        return (
+          document.querySelector(
+            'meta[name="csrf-token"]'
+          )?.content || ""
+        );
+      }
+
+      function go(id) {
+        const card = $("#card");
+        const oldHeight = card.offsetHeight;
+
+        card.style.height = `${oldHeight}px`;
+
+        $$(".view").forEach((view) => {
+          view.classList.remove("active");
+        });
+
+        $(`#${id}`).classList.add("active");
+
+        card.style.height = "auto";
+
+        const newHeight = card.offsetHeight;
+        card.style.height = `${oldHeight}px`;
+
+        requestAnimationFrame(() => {
+          card.style.height = `${newHeight}px`;
+
+          setTimeout(() => {
+            card.style.height = "auto";
+          }, 360);
+        });
+
+        const firstInput = $(`#${id} input`);
+
+        setTimeout(() => {
+          firstInput?.focus({ preventScroll: true });
+        }, 250);
+      }
+
+      $$("[data-go]").forEach((button) => {
+        button.onclick = () => go(button.dataset.go);
+      });
+
+      $$(".eye").forEach((button) => {
+        button.onclick = () => {
+          const input = $(`#${button.dataset.target}`);
+          const showPassword = input.type === "password";
+
+          input.type = showPassword ? "text" : "password";
+
+          button.querySelector("svg").innerHTML = showPassword
+            ? '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a19.77 19.77 0 0 1 4.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a19.86 19.86 0 0 1-3.17 4.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+            : '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>';
+        };
+      });
+
+      function markInvalid(input, invalid, message) {
+        const field = input.closest(".field, .otp");
+
+        field.classList.remove("error");
+        void field.offsetWidth;
+
+        if (invalid) {
+          const messageElement = field.nextElementSibling;
+
+          if (
+            message &&
+            messageElement &&
+            messageElement.classList.contains("msg")
+          ) {
+            messageElement.textContent = message;
+          }
+
+          field.classList.add("error");
+        }
+
+        return invalid;
+      }
+
+      $$("input").forEach((input) => {
+        input.addEventListener("input", () => {
+          input
+            .closest(".field, .otp")
+            ?.classList.remove("error");
+        });
+      });
+
+      async function api(path, body = {}) {
+        const token = csrfToken();
+
+        const headers = {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        };
+
+        if (token) {
+          headers["X-CSRFToken"] = token;
+        }
+
+        let response;
+
+        try {
+          response = await fetch(path, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(body)
+          });
+        } catch (error) {
+          return {
+            ok: false,
+            error: "Could not reach the server"
+          };
+        }
+
+        let result;
+
+        try {
+          result = await response.json();
+        } catch (error) {
+          result = {
+            ok: false,
+            error: "The server returned an invalid response"
+          };
+        }
+
+        if (response.status === 401) {
+          return {
+            ok: false,
+            error: "Your session expired. Please log in again."
+          };
+        }
+
+        if (response.status === 403) {
+          return {
+            ok: false,
+            error: (
+              result.error ||
+              "Your session expired. Refresh the page and try again."
+            )
+          };
+        }
+
+        if (response.status === 429) {
+          return {
+            ok: false,
+            error: (
+              result.error ||
+              "Too many failed attempts. Try again in 10 minutes."
+            )
+          };
+        }
+
+        if (!response.ok && result.ok === undefined) {
+          result.ok = false;
+          result.error = (
+            result.error ||
+            "The request could not be completed."
+          );
+        }
+
+        return result;
+      }
+
+      async function submit(form, callback) {
+        const button = form.querySelector(".btn");
+
+        button.classList.add("loading");
+        button.disabled = true;
+
+        try {
+          await callback();
+        } catch (error) {
+          console.error(error);
+          toast("Could not reach the server", "error");
+        } finally {
+          button.classList.remove("loading");
+          button.disabled = false;
+        }
+      }
+
+      const emailIsValid = (value) =>
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+      let resetEmail = "";
+
+      $("#login").addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const invalidUsername = markInvalid(
+          $("#l-user"),
+          !$("#l-user").value.trim()
+        );
+
+        const invalidPassword = markInvalid(
+          $("#l-pass"),
+          !$("#l-pass").value,
+          "Enter your password"
+        );
+
+        if (invalidUsername || invalidPassword) return;
+
+        submit($("#login"), async () => {
+          const result = await api("/api/login", {
+            username: $("#l-user").value.trim(),
+            password: $("#l-pass").value,
+            remember: $("#remember").checked
+          });
+
+          if (result.ok) {
+            toast("Welcome back!", "success");
+
+            setTimeout(() => {
+              location.href = result.must_change_password
+                ? "/first-login"
+                : "/landing";
+            }, 700);
+          } else {
+            const message =
+              result.error || "Sign in failed";
+
+            toast(message, "error");
+            markInvalid(
+              $("#l-pass"),
+              true,
+              message
+            );
+          }
+        });
+      });
+
+      $("#forgot").addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const invalidEmail = markInvalid(
+          $("#f-email"),
+          !emailIsValid($("#f-email").value)
+        );
+
+        if (invalidEmail) return;
+
+        submit($("#forgot"), async () => {
+          resetEmail = $("#f-email").value.trim();
+
+          const result = await api(
+            "/api/forgot-password",
+            { email: resetEmail }
+          );
+
+          if (!result.ok) {
+            toast(
+              result.error || "Could not send the reset code",
+              "error"
+            );
+            return;
+          }
+
+          $("#resetSub").textContent =
+            `We sent a 6-digit code to ${resetEmail}. ` +
+            "Enter it below with a new password.";
+
+          toast(
+            "If that email exists, a code was sent.",
+            "info"
+          );
+
+          go("reset");
+
+          setTimeout(() => {
+            $("#otp input")[0].focus();
+          }, 400);
+        });
+      });
+
+      const otpInputs = $$("#otp input");
+
+      otpInputs.forEach((input, index) => {
+        input.addEventListener("input", () => {
+          input.value = input.value
+            .replace(/\D/g, "")
+            .slice(0, 1);
+
+          if (
+            input.value &&
+            index < otpInputs.length - 1
+          ) {
+            otpInputs[index + 1].focus();
+          }
+
+          if (
+            index === otpInputs.length - 1 &&
+            input.value
+          ) {
+            $("#reset").requestSubmit();
+          }
+        });
+
+        input.addEventListener("keydown", (event) => {
+          if (
+            event.key === "Backspace" &&
+            !input.value &&
+            index > 0
+          ) {
+            otpInputs[index - 1].focus();
+          }
+
+          if (
+            event.key === "ArrowLeft" &&
+            index > 0
+          ) {
+            otpInputs[index - 1].focus();
+          }
+
+          if (
+            event.key === "ArrowRight" &&
+            index < otpInputs.length - 1
+          ) {
+            otpInputs[index + 1].focus();
+          }
+        });
+
+        input.addEventListener("paste", (event) => {
+          event.preventDefault();
+
+          const pastedText = (
+            event.clipboardData.getData("text") || ""
+          )
+            .replace(/\D/g, "")
+            .slice(0, 6);
+
+          pastedText
+            .split("")
+            .forEach((character, position) => {
+              if (otpInputs[position]) {
+                otpInputs[position].value = character;
+              }
+            });
+
+          (
+            otpInputs[pastedText.length] ||
+            otpInputs[otpInputs.length - 1]
+          ).focus();
+
+          if (pastedText.length === 6) {
+            $("#reset").requestSubmit();
+          }
+        });
+      });
+
+      $("#reset").addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const code = otpInputs
+          .map((input) => input.value)
+          .join("");
+
+        const invalidCode = code.length !== 6;
+
+        otpInputs.forEach((input) => {
+          markInvalid(input, invalidCode);
+        });
+
+        const invalidPassword = markInvalid(
+          $("#r-pass"),
+          $("#r-pass").value.length < 8
+        );
+
+        if (invalidCode || invalidPassword) return;
+
+        submit($("#reset"), async () => {
+          const result = await api("/api/reset-password", {
+            email: resetEmail,
+            otp: code,
+            new_password: $("#r-pass").value
+          });
+
+          if (result.ok) {
+            toast(
+              "Password changed. Please log in.",
+              "success"
+            );
+
+            go("login");
+          } else {
+            const message =
+              result.error || "Reset failed";
+
+            toast(message, "error");
+
+            otpInputs.forEach((input) => {
+              markInvalid(input, true);
+            });
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

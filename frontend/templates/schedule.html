@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% import "_partials/page_header.html" as ph %}
+{% block page %}
+<main>
+  {{ ph.page_header(
+       title    = "Schedule",
+       subtitle = "See the week at a glance and jump between days.",
+       action   = '<div class="actions"><div class="seg"><a href="/appointments">Appointments</a><a class="on" href="/schedule">Schedule</a></div><button class="btn" onclick="openModal()">+ Set appointment</button></div>'
+  ) }}
+
+  <div class="grid3 mini">
+    <div class="stat"><small>Appointments (all)</small><div class="n">{{ appointments|length }}</div><p>All non-cancelled bookings</p></div>
+    <div class="stat"><small>Selected day</small><div class="n small" id="busyStat">—</div><p>Updates as you click a date</p></div>
+    <div class="stat"><small>Quick actions</small><div class="row-actions">
+      <button class="btn ghost small" type="button" id="todayBtn">Jump to today</button>
+      <button class="btn small" type="button" onclick="openModal()">+ New booking</button>
+    </div></div>
+  </div>
+
+  <div class="cols">
+    <div class="panel">
+      <div class="calhead">
+        <button type="button" id="prevBtn">‹</button>
+        <h2 id="month"></h2>
+        <button type="button" id="nextBtn">›</button>
+      </div>
+      <div class="cal" id="cal"></div>
+    </div>
+    <div class="panel">
+      <small class="eyebrow">Daily schedule</small>
+      <h2 id="dayTitle" style="margin:4px 0 2px"></h2>
+      <p id="dayCount" style="margin:0 0 16px;color:var(--muted);font-size:.85rem"></p>
+      <div class="list" id="dayList"></div>
+    </div>
+  </div>
+</main>
+
+{% include "_appt_detail.html" %}
+{% include "_appt_modal.html" %}
+{% endblock %}
+
+{% block script %}
+<script>
+(function () {
+  const appointments = {{ appointments|tojson }};
+  const $id = id => document.getElementById(id);
+  const E = s => String(s ?? "").replace(/[&<>"']/g,
+    c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const todayIso = iso(new Date());
+  let shown = new Date(); shown.setDate(1);
+  let selected = todayIso;
+
+  function draw() {
+    $id("month").textContent = shown.toLocaleDateString("en-PH", { month: "long", year: "numeric" });
+    let html = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => `<div class="dn">${d}</div>`).join("")
+             + "<div></div>".repeat(shown.getDay());
+    const days = new Date(shown.getFullYear(), shown.getMonth() + 1, 0).getDate();
+    for (let n = 1; n <= days; n++) {
+      const key = iso(new Date(shown.getFullYear(), shown.getMonth(), n));
+      const count = appointments.filter(a => a.appt_date === key).length;
+      html += `<div class="day ${key === selected ? "sel" : ""} ${key === todayIso ? "today" : ""}" data-date="${key}">
+        ${n}${count ? `<em>${count} visit${count > 1 ? "s" : ""}</em>` : ""}
+      </div>`;
+    }
+    $id("cal").innerHTML = html;
+
+    const list = appointments.filter(a => a.appt_date === selected);
+    $id("dayTitle").textContent = new Date(selected + "T00:00")
+      .toLocaleDateString("en-PH", { weekday: "long", month: "long", day: "numeric" });
+    $id("dayCount").textContent = `${list.length} appointment${list.length === 1 ? "" : "s"}`;
+    $id("busyStat").textContent = list.length;
+    $id("dayList").innerHTML = list.map(a => `
+      <div class="item" data-id="${E(a.appointment_id)}">
+        <div class="pic c${(+a.appointment_id) % 4}">${E((a.pet_name || "?")[0].toUpperCase())}</div>
+        <div class="grow"><h4>${E(a.pet_name)}</h4><p>${E(a.service_name)} · ${E(a.owner_name)}</p></div>
+        <div class="time">${E(a.appt_time)}</div>
+      </div>`).join("") || '<div class="empty">Nothing booked this day.</div>';
+  }
+
+  $id("prevBtn").addEventListener("click", () => { shown.setMonth(shown.getMonth() - 1); draw(); });
+  $id("nextBtn").addEventListener("click", () => { shown.setMonth(shown.getMonth() + 1); draw(); });
+  $id("todayBtn").addEventListener("click", () => {
+    shown = new Date(); shown.setDate(1); selected = todayIso; draw();
+  });
+
+  $id("cal").addEventListener("click", e => {
+    const day = e.target.closest(".day");
+    if (!day) return;
+    selected = day.dataset.date;
+    draw();
+  });
+
+  $id("dayList").addEventListener("click", e => {
+    const item = e.target.closest(".item");
+    if (!item) return;
+    const a = appointments.find(x => String(x.appointment_id) === item.dataset.id);
+    if (a) window.renderApptDetail(a);
+  });
+
+  draw();
+})();
+</script>
+{% endblock %}

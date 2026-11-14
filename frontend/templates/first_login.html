@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>Brewskers – Set your password</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='Favicon.png') }}" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+
+  <body class="auth">
+    <form class="auth-card" onsubmit="submitNewPassword(event)">
+      <img class="brand-mark" src="{{ url_for('static', filename='logo.png') }}" alt="" />
+      <h1>Set your password</h1>
+      <p>
+        Welcome, <b>{{ user.username }}</b>. Enter the temporary password
+        provided by the admin, then choose a permanent password.
+      </p>
+
+      <label for="temporary-password">Temporary password</label>
+      <input id="temporary-password" name="temporary_password" type="password"
+             autocomplete="current-password" required />
+
+      <label for="new-password">New password</label>
+      <input id="new-password" name="new_password" type="password"
+             placeholder="At least 8 characters" minlength="8"
+             autocomplete="new-password" required />
+
+      <label for="confirm-password">Confirm new password</label>
+      <input id="confirm-password" name="confirm" type="password"
+             minlength="8" autocomplete="new-password" required />
+
+      <button class="btn wide" type="submit">
+        <span class="t">Save and continue</span><span class="spin"></span>
+      </button>
+    </form>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      const toast = (text, type) => {
+        const e = document.querySelector("#toast");
+        e.innerHTML =
+          '<span class="toast-ic">' +
+          (type === "error" ? "!" : type === "info" ? "i" : "✓") +
+          '</span><span class="toast-text"></span>';
+        e.querySelector(".toast-text").textContent = text;
+        e.className = "toast " + (type || "success") + " show";
+        clearTimeout(toast.t);
+        toast.t = setTimeout(
+          () => e.classList.remove("show"),
+          type === "error" ? 4000 : 2500,
+        );
+      };
+
+      async function api(path, body) {
+        let response;
+        try {
+          response = await fetch(path, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-csrf-token":
+                document.querySelector('meta[name="csrf-token"]')?.content || "",
+            },
+            body: JSON.stringify(body),
+          });
+        } catch (err) {
+          return { ok: false, error: "Could not reach the server" };
+        }
+
+        if (response.status === 401) {
+          setTimeout(() => (location.href = "/"), 1200);
+          return { ok: false, error: "Session expired. Please log in again." };
+        }
+
+        try {
+          return await response.json();
+        } catch (err) {
+          return { ok: false, error: "Server error. Please try again." };
+        }
+      }
+
+      async function submitNewPassword(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const temporaryPassword =
+          form.temporary_password.value;
+        const newPassword = form.new_password.value;
+        const confirmation = form.confirm.value;
+
+        if (newPassword !== confirmation) {
+          toast("Passwords do not match", "error");
+          return;
+        }
+
+        const result = await api(
+          "/api/profile/change-password",
+          {
+            temporary_password: temporaryPassword,
+            new_password: newPassword,
+            confirm: confirmation
+          }
+        );
+
+        if (result.ok) {
+          toast("Password saved", "success");
+          setTimeout(() => (location.href = "/landing"), 900);
+        } else {
+          toast(
+            result.error || "Could not save password",
+            "error"
+          );
+        }
+      }
+    </script>
+    </body>
+</html>
