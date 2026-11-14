@@ -169,10 +169,9 @@ The built-in Flask server is for development only. Before hosting this anywhere 
 
 ### Developers
 
-<!-- Replace with your team members' names. -->
-**[Last name, First name M.]**  
-**[Last name, First name M.]**  
-**[Last name, First name M.]**  
+**[De Ramos, Cheyenne Lei Z.]**  
+**[Lim, Kenshin C.]**  
+**[Lopez, Francisco M. III]**  
 
 ---
 
@@ -180,8 +179,8 @@ The built-in Flask server is for development only. Before hosting this anywhere 
 
 **Laguna State Polytechnic University** | **College of Computer Studies**  
 **CS2A – Final Project**  
-**Instructors:** [Instructor names]  
-**Academic Year:** [Academic year]
+**Instructors:** [Ms. Roxanne Garbo, Sir Rolan C. Sotomayor, Sir Jencel P. Sofer]  
+**Academic Year:** [2026-2027]
 
 Brewskers Pet Café is our final project for CS2A. It covers three subjects at once: information management, data structures and algorithms, and object-oriented programming.
 
