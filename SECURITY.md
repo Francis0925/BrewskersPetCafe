@@ -8,7 +8,7 @@ Only the latest commit on the `main` branch receives security fixes.
 
 | Version         | Supported |
 |-----------------|:---------:|
-| `main` (latest) |    ✅     |
+| `main - Final` (latest) |    ✅     |
 | older commits   |    ❌     |
 
 ## Reporting a vulnerability
