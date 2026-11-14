@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+{% import "_partials/page_header.html" as ph %}
+
+{% block page %}
+<main>
+  {% set totals = namespace(value=0, low=0) %}
+  {% for product in products %}
+    {% set totals.value = totals.value + product.price * product.stock %}
+    {% if product.stock <= low_stock_limit %}
+      {% set totals.low = totals.low + 1 %}
+    {% endif %}
+  {% endfor %}
+
+  {{ ph.page_header(
+       title    = "Inventory",
+       subtitle = "Keep an eye on what's brewing and baking.",
+       action   = '<button class="btn" onclick="openModal()">+ Add item</button>'
+  ) }}
+
+  <div class="grid3">
+    <div class="stat">
+      <small>TOTAL ITEMS</small>
+      <div class="n">{{ products|length }}</div>
+      <p>
+        Across
+        {{ products|map(attribute='category')|unique|list|length }}
+        categories
+      </p>
+    </div>
+
+    <div class="stat">
+      <small>LOW STOCK</small>
+      <div class="n {{ 'red' if totals.low else '' }}">
+        {{ totals.low }}
+      </div>
+      <p>{{ low_stock_limit }} or fewer left</p>
+    </div>
+
+    <div class="stat">
+      <small>INVENTORY VALUE</small>
+      <div class="n">
+        {{ "₱{:,.0f}".format(totals.value) }}
+      </div>
+      <p>Price × stock on hand</p>
+    </div>
+  </div>
+
+  <div class="tablewrap">
+    <div class="tablehead">
+      <h2>Stock on hand</h2>
+
+      <input
+        class="searchbar"
+        id="search"
+        placeholder="Search inventory..."
+        oninput="filterRows()"
+      />
+    </div>
+
+    <div class="chips" id="categories">
+      <button class="chip on" data-category="All">All</button>
+
+      {% for category in products|map(attribute='category')|unique %}
+        <button class="chip" data-category="{{ category }}">
+          {{ category }}
+        </button>
+      {% endfor %}
+    </div>
+
+    <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>PHOTO</th>
+          <th data-sort="name">ITEM</th>
+          <th data-sort="category">CATEGORY</th>
+          <th data-sort="stock">IN STOCK</th>
+          <th>STATUS</th>
+          <th data-sort="price">PRICE</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody id="rows">
+        {% for product in products %}
+          <tr
+            data-name="{{ product.name|lower }}"
+            data-category="{{ product.category }}"
+            data-stock="{{ product.stock }}"
+            data-price="{{ product.price }}"
+          >
+            <td>
+              {% if product.image %}
+                <img src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}" class="product-thumb" onerror="this.outerHTML='<span class=product-thumb product-thumb--empty>No photo</span>'" />
+              {% else %}
+                <span class="product-thumb product-thumb--empty" title="No picture yet">No photo</span>
+              {% endif %}
+              <label class="link" for="photo-{{ product.product_id }}">Change</label>
+              <input id="photo-{{ product.product_id }}" type="file" accept=".jpg,.jpeg,.png,.webp" hidden onchange="uploadPhoto({{ product.product_id }}, this)" />
+            </td>
+            <td><b>{{ product.name }}</b></td>
+            <td>{{ product.category }}</td>
+
+            <td>
+              <input
+                type="number"
+                min="0"
+                value="{{ product.stock }}"
+                onchange="saveStock(
+                  {{ product.product_id }},
+                  this.value
+                )"
+              />
+            </td>
+
+            <td>
+              <span
+                class="badge {{ 'low' if product.stock <= low_stock_limit }}"
+              >
+                {{
+                  'Low stock'
+                  if product.stock <= low_stock_limit
+                  else 'In stock'
+                }}
+              </span>
+            </td>
+
+            <td class="num">
+              {{ "₱{:,.2f}".format(product.price) }}
+            </td>
+
+            <td class="row-actions">
+              {% if product.stock <= low_stock_limit %}
+                <button
+                  class="btn ghost small"
+                  onclick="quickRestock({{ product.product_id }})"
+                >
+                  Restock
+                </button>
+              {% endif %}
+
+              <button
+                class="btn danger small"
+                onclick="removeItem({{ product.product_id }})"
+              >
+                Remove
+              </button>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</main>
+
+<div
+  class="modal"
+  id="modal"
+  onclick="if(event.target === this) closeModal()"
+>
+  <form id="add-product-form" onsubmit="submitProduct(event)">
+    <h2>Add item</h2>
+
+    <input
+      name="name"
+      placeholder="Item name"
+      required
+    />
+
+    <select name="category" required>
+      <option value="" disabled selected>
+        Select category
+      </option>
+      <option value="Coffee">Coffee</option>
+      <option value="Pastry">Pastry</option>
+      <option value="Pet Treats">Pet Treats</option>
+    </select>
+
+    <div class="two">
+      <input
+        name="price"
+        type="number"
+        step="0.01"
+        min="0"
+        placeholder="Price"
+        required
+      />
+
+      <input
+        name="stock"
+        type="number"
+        min="0"
+        placeholder="Stock"
+        required
+      />
+    </div>
+
+    <label>Picture (optional, JPG/PNG/WebP, max 2 MB)</label>
+    <input
+      name="image"
+      type="file"
+      accept=".jpg,.jpeg,.png,.webp"
+      onchange="previewProductPhoto(this)"
+    />
+    <img id="product-photo-preview" class="product-photo-preview" alt="Picture preview" hidden />
+
+    <button class="btn wide">Save item</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+function previewProductPhoto(input) {
+  const preview = document.getElementById("product-photo-preview");
+  if (!input.files || !input.files[0]) { preview.hidden = true; return; }
+  preview.src = URL.createObjectURL(input.files[0]);
+  preview.hidden = false;
+}
+
+async function postFormData(url, formData) {
+  const token = document.querySelector('meta[name="csrf-token"]')?.content || "";
+  const headers = {};
+  if (token) headers["X-CSRF-Token"] = token;
+  const response = await fetch(url, { method: "POST", headers, body: formData });
+  let result;
+  try { result = await response.json(); } catch { result = { ok: false, error: "Invalid response" }; }
+  if (response.status === 401) location.href = "/";
+  return result;
+}
+
+async function submitProduct(event) {
+  event.preventDefault();
+  const formData = new FormData(event.target);
+  const result = await postFormData("/api/products", formData);
+  if (result.ok) {
+    toast("Item saved", "success");
+    setTimeout(() => location.reload(), 500);
+  } else {
+    toast(result.error || "Could not save item", "error");
+  }
+}
+
+async function uploadPhoto(productId, input) {
+  if (!input.files || !input.files[0]) return;
+  const formData = new FormData();
+  formData.append("image", input.files[0]);
+  const result = await postFormData(`/api/products/${productId}/image`, formData);
+  if (result.ok) {
+    toast("Picture updated", "success");
+    setTimeout(() => location.reload(), 500);
+  } else {
+    toast(result.error || "Could not update picture", "error");
+  }
+}
+
+// Hand-written algorithms (no built-in sort() or includes()).
+
+// Stable merge sort. Time O(n log n) in every case, extra space O(n).
+// compare(a, b) returns <0, 0 or >0. Equal items keep their original order.
+function mergeSort(items, compare) {
+  if (items.length <= 1) return items.slice();
+
+  const middle = items.length >> 1;
+  const left = mergeSort(items.slice(0, middle), compare);
+  const right = mergeSort(items.slice(middle), compare);
+
+  const merged = [];
+  let i = 0;
+  let j = 0;
+
+  while (i < left.length && j < right.length) {
+    if (compare(left[i], right[j]) <= 0) {
+      merged.push(left[i++]);
+    } else {
+      merged.push(right[j++]);
+    }
+  }
+
+  while (i < left.length) merged.push(left[i++]);
+  while (j < right.length) merged.push(right[j++]);
+
+  return merged;
+}
+
+// Linear substring search. Worst case O(n * m) for text length n and
+// pattern length m; usually close to O(n) for short item names.
+function containsText(text, pattern) {
+  const n = text.length;
+  const m = pattern.length;
+
+  if (m === 0) return true;
+
+  for (let start = 0; start <= n - m; start++) {
+    let k = 0;
+    while (k < m && text[start + k] === pattern[k]) k++;
+    if (k === m) return true;
+  }
+
+  return false;
+}
+
+// Search filter: one pass over the rows, O(r * n * m) worst case for r rows.
+function filterRows() {
+  const searchText = $("#search").value.toLowerCase().trim();
+  const selectedCategory =
+    document.querySelector("#categories .chip.on")?.dataset.category
+    || "All";
+
+  document.querySelectorAll("#rows tr").forEach((row) => {
+    const matchesName = containsText(row.dataset.name, searchText);
+    const matchesCategory =
+      selectedCategory === "All"
+      || row.dataset.category === selectedCategory;
+
+    row.hidden = !(matchesName && matchesCategory);
+  });
+}
+
+document.querySelectorAll("#categories .chip").forEach((chip) => {
+  chip.onclick = () => {
+    document
+      .querySelectorAll("#categories .chip")
+      .forEach((item) => item.classList.remove("on"));
+
+    chip.classList.add("on");
+    filterRows();
+  };
+});
+
+let sortKey = null;
+let sortDirection = 1;
+
+document.querySelectorAll("th[data-sort]").forEach((header) => {
+  header.style.cursor = "pointer";
+
+  header.onclick = () => {
+    const selectedKey = header.dataset.sort;
+
+    if (sortKey === selectedKey) {
+      sortDirection *= -1;
+    } else {
+      sortKey = selectedKey;
+      sortDirection = 1;
+    }
+
+    document
+      .querySelectorAll("th[data-sort]")
+      .forEach((item) => {
+        item.classList.remove("asc", "desc");
+      });
+
+    header.classList.add(
+      sortDirection === 1 ? "asc" : "desc"
+    );
+
+    const rows = [...document.querySelectorAll("#rows tr")];
+    const visibleRows = rows.filter((row) => !row.hidden);
+    const hiddenRows = rows.filter((row) => row.hidden);
+
+    // Numbers compare as numbers (so stock 0 sorts correctly), text as lowercase.
+    const isNumeric = sortKey === "stock" || sortKey === "price";
+    const valueOf = (row) =>
+      isNumeric ? Number(row.dataset[sortKey]) : row.dataset[sortKey].toLowerCase();
+
+    const sortedRows = mergeSort(visibleRows, (firstRow, secondRow) => {
+      const firstValue = valueOf(firstRow);
+      const secondValue = valueOf(secondRow);
+
+      if (firstValue < secondValue) return -sortDirection;
+      if (firstValue > secondValue) return sortDirection;
+      return 0;
+    });
+
+    const tableBody = $("#rows");
+
+    sortedRows.forEach((row) => tableBody.appendChild(row));
+    hiddenRows.forEach((row) => tableBody.appendChild(row));
+  };
+});
+
+async function saveStock(productId, stock) {
+  const result = await api(
+    `/api/products/${productId}/stock`,
+    { stock: Number(stock) }
+  );
+
+  if (result.ok) {
+    toast("Stock updated", "success");
+  } else {
+    toast(result.error || "Could not update stock", "error");
+  }
+}
+
+async function quickRestock(productId) {
+  const input = prompt(
+    "How many units should be added to the current stock?",
+    "20"
+  );
+
+  if (input === null) return;
+
+  const amount = Number.parseInt(input, 10);
+
+  if (!Number.isInteger(amount) || amount <= 0) {
+    toast("Enter a positive whole number", "error");
+    return;
+  }
+
+  const result = await api(
+    `/api/products/${productId}/stock`,
+    {
+      stock: amount,
+      restock: true
+    }
+  );
+
+  if (result.ok) {
+    toast("Stock updated", "success");
+    setTimeout(() => location.reload(), 500);
+  } else {
+    toast(result.error || "Could not update stock", "error");
+  }
+}
+
+async function removeItem(productId) {
+  const confirmed = confirm(
+    "Remove this item from the menu?"
+  );
+
+  if (!confirmed) return;
+
+  const result = await api(
+    `/api/products/${productId}`,
+    {},
+    "DELETE"
+  );
+
+  if (result.ok) {
+    toast("Item removed", "success");
+    setTimeout(() => location.reload(), 600);
+  } else {
+    toast(result.error || "Could not remove item", "error");
+  }
+}
+</script>
+{% endblock %}
