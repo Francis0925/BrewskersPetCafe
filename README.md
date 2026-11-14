@@ -60,7 +60,7 @@ cp .env.example .env
 python3 scripts/setup.py        # Windows: py scripts/setup.py
 ```
 
-> [!WARNING]
+> [!WARNING] 
 > `scripts/setup.py` builds a brand new database with the demo products and services. **It deletes any existing database first**, so only run it on a fresh install.
 
 #### 4. Run the app
